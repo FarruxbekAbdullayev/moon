@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>27-dars: Koreys Grammatikasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Baloo 2', 'Noto Sans KR', sans-serif;
+            background-color: #ffcfd2;
+            /* Pastel pink background */
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .slide-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffcfd2;
+            /* Pastel pink background */
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        .content-box {
+            width: 90%;
+            height: 90%;
+            max-width: 1600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .title-area {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: #f06292;
+            /* Pink */
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #9575cd;
+            /* Purple */
+            font-size: 1.5rem;
+            font-weight: 600;
+            background-color: #f3e5f5;
+            /* Very light purple */
+            padding: 3px 15px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10px;
+            height: calc(100% - 100px);
+            overflow-y: auto;
+        }
+
+        .card {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #ffcfd2;
+            /* Pastel pink */
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .example-box {
+            background-color: #e3f2fd;
+            /* Very light blue */
+            border: 2px dashed #81d4fa;
+            /* Light blue */
+            border-radius: 12px;
+            padding: 10px;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .korean-text {
+            color: #ec407a;
+            /* Darker pink */
+            font-weight: 700;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .section-title {
+            color: #7e57c2;
+            /* Purple */
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 2px solid #e1bee7;
+            /* Light purple */
+        }
+
+        .speech-bubble {
+            background-color: #e8f5e9;
+            /* Light green */
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+            border: 2px solid #c8e6c9;
+            /* Slightly darker green */
+        }
+
+        .nav-buttons {
+            position: fixed;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            transform: translateY(-50%);
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .nav-button {
+            width: 50px;
+            height: 50px;
+            background-color: #f8bbd0;
+            /* Light pink */
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .nav-button:hover {
+            background-color: #f48fb1;
+            /* Slightly darker pink */
+            transform: scale(1.1);
+        }
+
+        .slide-dots {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e1bee7;
+            /* Light purple */
+            border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-dot.active {
+            background-color: #9575cd;
+            /* Purple */
+            transform: scale(1.2);
+        }
+
+        .cute-list {
+            list-style-type: none;
+            padding-left: 5px;
+        }
+
+        .cute-list li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .cute-list li::before {
+            content: "✿";
+            position: absolute;
+            left: 0;
+            color: #f48fb1;
+            /* Pink */
+            font-size: 1rem;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #9575cd;
+            /* Purple */
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            background-color: #f8bbd0;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Responsive text sizes */
+        .text-lg {
+            font-size: 1.05rem;
+        }
+
+        .text-xl {
+            font-size: 1.2rem;
+        }
+
+        @media (min-height: 800px) {
+            .text-lg {
+                font-size: 1.1rem;
+            }
+
+            .text-xl {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Slide 1: Introduction -->
+        <div class="slide active" id="slide1">
+            <div class="content-box">
+                <div class="title-area">
+                    <h1 class="title">29-dars</h1>
+                    <p class="subtitle">Koreys tili grammatikasi</p>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <h2 class="text-4xl font-bold mb-2 korean-text">–(으)ㄹ 줄 알다 / 모르다</h2>
+                        <p class="text-lg italic">Bu grammatik qurilma biror narsani qila olish yoki bilish (알다), yoki
+                            qila olmaslik/bilmaslik (모르다) holatini bildiradi.</p>
+                    </div>
+
+                    <div class="footer-text">
+                        O‘zbek tilida bu odatda quyidagicha tarjima qilinadi:
+                    </div>
+                </div>
+                <div class="slide-number">1/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Asosiy ma’nosi -->
+        <div class="slide" id="slide2">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Asosiy ma’nosi</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">-거나 qo‘shimchasi ikki yoki undan ortiq harakat, holat, yoki tanlovdan
+                            bittasini tanlash, yoki har iki holat bo‘lishi mumkinligini ifodalaydi.</p>
+                        <p class="text-lg">O‘zbek tilidagi “yoki” so‘ziga to‘g‘ri keladi.</p>
+                    </div>
+                </div>
+                <div class="slide-number">2/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Qanday tuziladi? -->
+        <div class="slide" id="slide3">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Qanday tuziladi?</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">Fe’lning hozirgi zamondagi so‘z yasalish asosiga quyidagicha qo‘shiladi:</p>
+                        <ul class="cute-list">
+                            <li>Agar fe’l unli bilan tugasa, unga -ㄹ 줄 알다/모르다 qo‘shiladi:<br>Masal: <span
+                                    class="korean-text">가다</span> (borish) → <span class="korean-text">갈 줄 알아요</span> –
+                                bora olaman</li>
+                            <li>Agar fe’l undosh bilan tugasa, unga -을 줄 알다/모르다 qo‘shiladi:<br>Masal: <span
+                                    class="korean-text">먹다</span> (yemoq) → <span class="korean-text">먹을 줄 몰라요</span> –
+                                yeyishni bilmayman</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="slide-number">3/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Misollar bilan tushuntirish, Al-dan -->
+        <div class="slide" id="slide4">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Misollar bilan tushuntirish</h2>
+                    <p class="subtitle">A) 알다 – Bilmoq / Qila olmoq</p>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 수영할 줄 알아요.</p>
+                            <p class="text-lg">Men suzishni bilaman / suza olaman.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">아이가 글씨를 쓸 줄 알아요.</p>
+                            <p class="text-lg">Bola yozishni biladi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">우리 언니는 요리할 줄 알아요.</p>
+                            <p class="text-lg">Opam ovqat tayyorlashni biladi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 한국 노래를 부를 줄 알아요.</p>
+                            <p class="text-lg">Men koreys qo‘shiqlarini ayta olaman.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">4/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Misollar bilan tushuntirish, Mo-da -->
+        <div class="slide" id="slide5">
+            <div class="content-box">
+                <div class="title-area">
+                    <p class="subtitle">B) 모르다 – Bilmaslik / Qila olmaslik</p>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 자전거를 탈 줄 몰라요.</p>
+                            <p class="text-lg">Men velosiped hayday olmayman.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">제 친구는 피아노를 칠 줄 몰라요.</p>
+                            <p class="text-lg">Do‘stim pianino chalishni bilmaydi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">아이가 아직 글을 읽을 줄 몰라요.</p>
+                            <p class="text-lg">Bola hali o‘qishni bilmaydi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">남편이 요리할 줄 몰라요.</p>
+                            <p class="text-lg">Erim ovqat tayyorlay olmaydi.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">5/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 6: O‘tmishda ishlatilishi -->
+        <div class="slide" id="slide6">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">O‘tmishda ishlatilishi</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">Agar biror narsani ilgari bilgan/bilmagan bo‘lsang, 알았다 / 몰랐다 deb
+                            o‘zgartirasan.</p>
+                        <ul class="cute-list">
+                            <li>어렸을 때는 수영할 줄 몰랐어요. (Bolaligimda suza olmasdim.)</li>
+                            <li>예전에는 김치를 만들 줄 몰랐는데 지금은 잘 만들어요. (Avval kimchi tayyorlashni bilmasdim, hozir esa yaxshi
+                                tayyorlayman.)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="slide-number">6/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 7: "Shunday deb o‘ylagandim" ma’nosi -->
+        <div class="slide" id="slide7">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">"Shunday deb o‘ylagandim" ma’nosi</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">Ba’zi hollarda 줄 알다 – bu kutgan, taxmin qilgan narsani bildiradi. Ya’ni: “Men
+                            shunday bo‘ladi deb o‘ylagandim, lekin…”</p>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">비가 안 올 줄 알았어요. 그런데 많이 왔어요.</p>
+                            <p class="text-lg">Yomg‘ir yog‘maydi deb o‘ylagandim. Lekin juda ko‘p yog‘di.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">시험이 쉬울 줄 알았는데 너무 어려웠어요.</p>
+                            <p class="text-lg">Imtihon oson bo‘ladi deb o‘yladim, lekin juda qiyin bo‘ldi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">친구가 도와줄 줄 알았어요.</p>
+                            <p class="text-lg">Do‘stim yordam beradi deb o‘ylagandim.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">7/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Og‘zaki shakllari -->
+        <div class="slide" id="slide8">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Og‘zaki shakllari</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">So‘zlashuv tilida bu grammatikani shunday eshitasan:</p>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">할 줄 알아요 → 할 줄 아세요?</p>
+                            <p class="text-lg">Qila olasizmi?</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">탈 줄 몰라요 → 못 타요.</p>
+                            <p class="text-lg">Hayday olmayman.</p>
+                        </div>
+                        <p class="text-lg">–(으)ㄹ 줄 알다 / 모르다 — juda keng tarqalgan ibora bo‘lib, ayniqsa ko‘nikmalar,
+                            qobiliyat, yoki bilim haqida gapirganda ishlatiladi.</p>
+                    </div>
+                </div>
+                <div class="slide-number">8/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 지 않다 nima? -->
+        <div class="slide" id="slide9">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">지 않다</h2>
+                    <p class="subtitle">nima?</p>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">지 않다 — bu fe’l yoki sifat bilan birga kelib, inkor (yani “emas”, “qilmaydi”,
+                            “bo‘lmaydi”) ma’nosini bildiradi.</p>
+                        <p class="text-lg">O‘zbek tilida bu odatda quyidagicha tarjima qilinadi:</p>
+                        <ul class="cute-list">
+                            <li>qilmayman, qilmaydi</li>
+                            <li>bormayman, bormaydi</li>
+                            <li>yoqtirmayman, yoqtirmaydi</li>
+                            <li>yomon emas, iliq emas</li>
+                            <li>istamayman, xohlamayman</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="slide-number">9/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Qanday tuziladi? -->
+        <div class="slide" id="slide10">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Qanday tuziladi?</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <p class="text-lg">Fe’l yoki sifatning asosiy qismiga 지 않다 qo‘shiladi.</p>
+                        <p class="text-lg">Fe’l zamoniga qarab 않다 o‘zgartiriladi:</p>
+                        <ul class="cute-list">
+                            <li>Hozirgi zamon: 지 않아요 / 지 않습니다</li>
+                            <li>O‘tmish zamon: 지 않았어요 / 지 않았습니다</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="slide-number">10/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Misollar bilan tushuntirish -->
+        <div class="slide" id="slide11">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Misollar bilan tushuntirish</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <h3 class="section-title">Hozirgi zamonda:</h3>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 커피를 마시지 않아요.</p>
+                            <p class="text-lg">Men qahva ichmayman.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">그 학생은 늦게 오지 않아요.</p>
+                            <p class="text-lg">U o‘quvchi kech kelmaydi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 매운 음식을 좋아하지 않아요.</p>
+                            <p class="text-lg">Men achchiq ovqatlarni yoqtirmayman.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">이 영화는 재미있지 않아요.</p>
+                            <p class="text-lg">Bu film qiziq emas.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">날씨가 춥지 않아요.</p>
+                            <p class="text-lg">Havo sovuq emas.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="section-title">O‘tmishda:</h3>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">어제 학교에 가지 않았어요.</p>
+                            <p class="text-lg">Kecha maktabga bormadim.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">친구가 약속을 지키지 않았어요.</p>
+                            <p class="text-lg">Do‘stim va’dasini bajarmadi.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 시험을 잘 보지 않았어요.</p>
+                            <p class="text-lg">Imtihonni yaxshi topshirmadim.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">11/12</div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Rasmiy shaklda (공손한 말) -->
+        <div class="slide" id="slide12">
+            <div class="content-box">
+                <div class="title-area">
+                    <h2 class="title korean-text">Rasmiy shaklda (공손한 말)</h2>
+                </div>
+
+                <div class="main-content">
+                    <div class="card">
+                        <div class="example-box">
+                            <p class="text-lg korean-text">저는 술을 마시지 않습니다.</p>
+                            <p class="text-lg">Men spirtli ichimlik ichmayman.</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">날씨가 덥지 않습니다.</p>
+                            <p class="text-lg">Havo issiq emas.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="section-title">"하지 않다" shakli</h3>
+                        <p class="text-lg">Ko‘p fe’llar 하다 bilan tugaydi, masalan:</p>
+                        <ul class="cute-list">
+                            <li>공부하다 (o‘qimoq)</li>
+                            <li>청소하다 (tozalamoq)</li>
+                            <li>요리하다 (ovqat pishirmoq)</li>
+                        </ul>
+                        <p class="text-lg">Bu fe’llar inkor shaklda quyidagicha bo‘ladi:</p>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">공부하지 않아요 – o‘qimayman</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">청소하지 않았어요 – tozalamadim</p>
+                        </div>
+                        <div class="example-box">
+                            <p class="text-lg korean-text">요리하지 않습니다 – ovqat pishirmayman</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide-number">12/12</div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="nav-buttons">
+            <button class="nav-button" id="prevBtn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                </svg>
+            </button>
+            <button class="nav-button" id="nextBtn">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Slide dots -->
+        <div class="slide-dots">
+            <div class="slide-dot active" data-slide="1"></div>
+            <div class="slide-dot" data-slide="2"></div>
+            <div class="slide-dot" data-slide="3"></div>
+            <div class="slide-dot" data-slide="4"></div>
+            <div class="slide-dot" data-slide="5"></div>
+            <div class="slide-dot" data-slide="6"></div>
+            <div class="slide-dot" data-slide="7"></div>
+            <div class="slide-dot" data-slide="8"></div>
+            <div class="slide-dot" data-slide="9"></div>
+            <div class="slide-dot" data-slide="10"></div>
+            <div class="slide-dot" data-slide="11"></div>
+            <div class="slide-dot" data-slide="12"></div>
+        </div>
+    </div>
+
+    <script>
+        // Current slide index  
+        let currentSlide = 1;
+        const totalSlides = 12;
+
+        // Get all slides  
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.slide-dot');
+
+        // Navigation buttons  
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Change slide function  
+        function changeSlide(n) {
+            // Remove active class from current slide and dot  
+            document.querySelector(`.slide.active`).classList.remove('active');
+            document.querySelector(`.slide-dot.active`).classList.remove('active');
+
+            // Add active class to new slide and dot  
+            document.getElementById(`slide${n}`).classList.add('active');
+            dots[n - 1].classList.add('active');
+
+            // Update current slide  
+            currentSlide = n;
+        }
+
+        // Next slide  
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < totalSlides) {
+                changeSlide(currentSlide + 1);
+            } else {
+                changeSlide(1); // Loop back to first slide  
+            }
+        });
+
+        // Previous slide  
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 1) {
+                changeSlide(currentSlide - 1);
+            } else {
+                changeSlide(totalSlides); // Loop to last slide  
+            }
+        });
+
+        // Click on dots  
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const slideNum = parseInt(dot.getAttribute('data-slide'));
+                changeSlide(slideNum);
+            });
+        });
+
+        // Keyboard navigation  
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (currentSlide < totalSlides) {
+                    changeSlide(currentSlide + 1);
+                } else {
+                    changeSlide(1);
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentSlide > 1) {
+                    changeSlide(currentSlide - 1);
+                } else {
+                    changeSlide(totalSlides);
+                }
+            }
+        });  
+    </script>
+</body>
+
+</html>

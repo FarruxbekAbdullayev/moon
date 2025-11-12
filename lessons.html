@@ -1,0 +1,2417 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koreys Tili LMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .korean-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .lesson-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-left-color: #3B82F6;
+        }
+
+        .exercise-option {
+            transition: all 0.2s ease;
+        }
+
+        .exercise-option:hover {
+            background-color: #F3F4F6;
+        }
+
+        .exercise-option.correct {
+            background-color: #D1FAE5 !important;
+            border-color: #10B981;
+        }
+
+        .exercise-option.incorrect {
+            background-color: #FEE2E2 !important;
+            border-color: #EF4444;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            /* 16:9 aspect ratio */
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-placeholder:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: scale(1.05);
+        }
+
+        .video-placeholder:hover i {
+            transform: scale(1.2);
+        }
+
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .word-tag {
+            cursor: default;
+            user-select: none;
+        }
+
+        .sentence-input {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .sentence-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">한</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900">Koreys Tili LMS</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-blue-100 px-3 py-1 rounded-full">
+                        <span class="text-blue-800 text-sm font-medium">37 ta dars</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Lessons Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="lessonsGrid">
+            <!-- Lessons will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Lesson Modal -->
+    <div id="lessonModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+        <div class="min-h-screen px-4 text-center">
+            <div class="inline-block w-full max-w-4xl my-8 text-left align-middle bg-white rounded-lg shadow-xl">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center p-6 border-b">
+                    <h2 id="modalTitle" class="text-2xl font-bold text-gray-900"></h2>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="p-6">
+                    <!-- Tabs -->
+                    <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                        <button class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors active"
+                            data-tab="video">
+                            <i class="fas fa-play-circle mr-2"></i>Video
+                        </button>
+                        <button class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors"
+                            data-tab="vocabulary">
+                            <i class="fas fa-book mr-2"></i>Lug'at
+                        </button>
+                        <button class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors"
+                            data-tab="exercises">
+                            <i class="fas fa-pencil-alt mr-2"></i>Mashqlar
+                        </button>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div id="videoTab" class="tab-content">
+                        <div class="video-container">
+                            <div class="video-placeholder">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 class="text-lg font-semibold mb-2">Dars haqida</h3>
+                            <p id="lessonDescription" class="text-gray-600"></p>
+                        </div>
+                    </div>
+
+                    <div id="vocabularyTab" class="tab-content hidden">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="vocabularyList">
+                            <!-- Vocabulary items will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div id="exercisesTab" class="tab-content hidden">
+                        <div id="exerciseContainer">
+                            <!-- Exercise content will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const exerciseTypes = {
+            MULTIPLE_CHOICE: 'multiple_choice',
+            SENTENCE_BUILDING: 'sentence_building',
+            FILL_BLANK: 'fill_blank',
+            TRANSLATION: 'translation'
+        };
+        // Lesson data
+        const lessons = [
+            {
+                id: 1,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/15",
+                title: "Koreys tili alifbosi (한글)",
+                korean: "한글",
+                description: "Koreys tilining yozuv tizimi - Hangul alifbosini o'rganish",
+                vocabulary: [
+                    { korean: "안녕하세요", uzbek: "Salom", pronunciation: "annyeonghaseyo" },
+                    { korean: "한글", uzbek: "Hangul (koreys alifbosi)", pronunciation: "hangeul" },
+                    { korean: "자음", uzbek: "Undosh", pronunciation: "jaeum" },
+                    { korean: "모음", uzbek: "Unli", pronunciation: "moeum" },
+                    { korean: "글자", uzbek: "Harf", pronunciation: "geulja" }
+                ],
+                exercises: [
+                    {
+                        question: "ㅏ harfi qanday tovush beradi?",
+                        options: ["a", "o", "u", "e"],
+                        correct: 0
+                    },
+                    {
+                        question: "ㅗ harfi qanday tovush beradi?",
+                        options: ["a", "o", "u", "i"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 2,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/16",
+                title: "Egalik va bosh kelishik (은/는, 이/가)",
+                korean: "주어와 주제",
+                description: "Koreys tilida egalik va bosh kelishik qo'shimchalarini o'rganish",
+                vocabulary: [
+                    { korean: "저", uzbek: "Men", pronunciation: "jeo" },
+                    { korean: "너", uzbek: "Sen", pronunciation: "neo" },
+                    { korean: "그", uzbek: "U (erkak)", pronunciation: "geu" },
+                    { korean: "그녀", uzbek: "U (ayol)", pronunciation: "geunyeo" },
+                    { korean: "우리", uzbek: "Biz", pronunciation: "uri" },
+                    { korean: "여러분", uzbek: "Sizlar", pronunciation: "yeoreobun" },
+                    { korean: "그들", uzbek: "Ular", pronunciation: "geudeul" },
+
+                    // Kasblar va maqomlar
+                    { korean: "학생", uzbek: "O'quvchi", pronunciation: "haksaeng" },
+                    { korean: "선생님", uzbek: "O'qituvchi", pronunciation: "seonsaengnim" },
+                    { korean: "의사", uzbek: "Shifokor", pronunciation: "uisa" },
+                    { korean: "친구", uzbek: "Do'st", pronunciation: "chingu" },
+                    { korean: "동생", uzbek: "Ukam/singlim", pronunciation: "dongsaeng" },
+
+                    // Ob-havo va kun
+                    { korean: "오늘", uzbek: "Bugun", pronunciation: "oneul" },
+                    { korean: "날씨", uzbek: "Havo", pronunciation: "nalssi" },
+                    { korean: "덥다", uzbek: "Issiq", pronunciation: "deopda" },
+                    { korean: "비 오다", uzbek: "Yomg'ir yog'moq", pronunciation: "bi oda" },
+                    { korean: "좋다", uzbek: "Yaxshi", pronunciation: "jota" },
+
+                    // Boshqa so'zlar
+                    { korean: "책", uzbek: "Kitob", pronunciation: "chaek" },
+                    { korean: "재미있다", uzbek: "Qiziq", pronunciation: "jaemiitda" },
+                    { korean: "고양이", uzbek: "Mushuk", pronunciation: "goyangi" },
+                    { korean: "귀엽다", uzbek: "Yoqimli", pronunciation: "gwiyeopda" },
+                    { korean: "예쁘다", uzbek: "Chiroyli", pronunciation: "yeppeuda" },
+                    { korean: "이름", uzbek: "Ism", pronunciation: "ireum" },
+
+                    // Grammatik qo'shimchalar
+                    { korean: "은/는", uzbek: "Egalik kelishigi", pronunciation: "eun/neun" },
+                    { korean: "이/가", uzbek: "Bosh kelishik", pronunciation: "i/ga" }
+                ],
+                exercises: [
+                    {
+                        question: "Bo'sh joyni to'ldiring: 저는 학생___.",
+                        options: ["이에요", "예요", "입니다", "이다"],
+                        correct: 2
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 이 사람___ 제 친구예요.",
+                        options: ["은", "는", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 오늘___ 날씨가 좋아요.",
+                        options: ["은", "는", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 한국어___ 재미있어요.",
+                        options: ["은", "는", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 제 이름___ 미나예요.",
+                        options: ["은", "는", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "'저 / 선생님' so'zlaridan gap tuzing:",
+                        options: ["저이 선생님", "저는 선생님이에요", "저가 선생님", "저을 선생님"],
+                        correct: 1
+                    },
+                    {
+                        question: "'이 책 / 재미있다' so'zlaridan gap tuzing:",
+                        options: ["이 책이 재미있어요", "이 책은 재미있어요", "이 책을 재미있어요", "이 책에 재미있어요"],
+                        correct: 1
+                    },
+                    {
+                        question: "저 ___ 학생입니다. - To'g'ri qo'shimchani tanlang:",
+                        options: ["이", "은", "는", "가"],
+                        correct: 2
+                    },
+                    {
+                        question: "To'g'ri gapni tanlang:",
+                        options: ["나은 선생님입니다", "저는 학생는입니다", "저는 선생님입니다", "나는는 의사예요"],
+                        correct: 2
+                    },
+                    {
+                        question: "'친구' so'zida qanday qo'shimcha ishlatiladi?",
+                        options: ["은", "는", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "Qaysi gapda 은/는 mavzu sifatida to'g'ri ishlatilgan?",
+                        options: ["오늘이 날씨가 좋아요", "오늘은 날씨가 좋아요", "오늘가 날씨은 좋아요", "오늘는 날씨가 좋아요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Gapni to'ldiring: 이 사람 ___ 제 동생이에요.",
+                        options: ["은", "는", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "'고양이 / 귀엽다' so'zlaridan gap tuzing:",
+                        options: ["고양이가 귀여워요", "고양이는 귀여워요", "고양이을 귀여워요", "고양이에 귀여워요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Undosh bilan tugagan so'zdan keyin qaysi qo'shimcha keladi?",
+                        options: ["는", "은", "가", "이"],
+                        correct: 1
+                    },
+                    {
+                        question: "Unli bilan tugagan so'zdan keyin qaysi qo'shimcha keladi?",
+                        options: ["는", "은", "가", "이"],
+                        correct: 0
+                    }
+
+                ]
+            },
+
+            {
+                id: 4,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/18",
+                title: "Ko'rsatish olmoshlari va iltimos ifodalari",
+                korean: "지시대명사와 부탁 표현",
+                description: "Ko'rsatish olmoshlari va iltimos ifodalari bilan tanishish",
+                vocabulary: [
+                    // Ko'rsatish olmoshlari
+                    { korean: "이", uzbek: "Bu (yaqin)", pronunciation: "i" },
+                    { korean: "그", uzbek: "U (o'rta masofa)", pronunciation: "geu" },
+                    { korean: "저", uzbek: "Ana u (uzoq)", pronunciation: "jeo" },
+                    { korean: "이것", uzbek: "Bu narsa", pronunciation: "igeot" },
+                    { korean: "그것", uzbek: "U narsa", pronunciation: "geugeot" },
+                    { korean: "저것", uzbek: "Ana u narsa", pronunciation: "jeogeot" },
+                    { korean: "여기", uzbek: "Bu yer", pronunciation: "yeogi" },
+                    { korean: "거기", uzbek: "U yer", pronunciation: "geogi" },
+                    { korean: "저기", uzbek: "Ana u yer", pronunciation: "jeogi" },
+
+                    // Iltimos ifodalari
+                    { korean: "주세요", uzbek: "Bering (iltimos)", pronunciation: "juseyo" },
+                    { korean: "해 주세요", uzbek: "Qilib bering", pronunciation: "hae juseyo" },
+                    { korean: "도와주세요", uzbek: "Yordam bering", pronunciation: "dowajuseyo" },
+                    { korean: "가르쳐 주세요", uzbek: "O'rgatib bering", pronunciation: "gareuchyeo juseyo" },
+                    { korean: "말씀해 주세요", uzbek: "Ayting (hurmatli)", pronunciation: "malsseum-hae juseyo" },
+                    { korean: "보여주세요", uzbek: "Ko'rsatib bering", pronunciation: "boyeojuseyo" },
+
+                    // Qo'shimcha so'zlar
+                    { korean: "뭐", uzbek: "Nima", pronunciation: "mwo" },
+                    { korean: "무엇", uzbek: "Nima (rasmiy)", pronunciation: "mueot" },
+                    { korean: "어디", uzbek: "Qayerda", pronunciation: "eodi" },
+                    { korean: "누구", uzbek: "Kim", pronunciation: "nugu" },
+                    { korean: "언제", uzbek: "Qachon", pronunciation: "eonje" },
+                    { korean: "왜", uzbek: "Nima uchun", pronunciation: "wae" },
+                    { korean: "어떻게", uzbek: "Qanday", pronunciation: "eotteoke" },
+                    { korean: "얼마", uzbek: "Qancha", pronunciation: "eolma" },
+
+                    // Joylar
+                    { korean: "집", uzbek: "Uy", pronunciation: "jip" },
+                    { korean: "학교", uzbek: "Maktab", pronunciation: "hakgyo" },
+                    { korean: "병원", uzbek: "Shifoxona", pronunciation: "byeong-won" },
+                    { korean: "가게", uzbek: "Do'kon", pronunciation: "gage" },
+                    { korean: "은행", uzbek: "Bank", pronunciation: "eunhaeng" },
+                    { korean: "시장", uzbek: "Bozor", pronunciation: "sijang" }
+                ],
+                exercises: [
+                    {
+                        question: "Bo'sh joyni to'ldiring: ___ 책이에요. (Bu kitobdir)",
+                        options: ["이", "그", "저", "여기"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: ___ 뭐예요? (U nima?)",
+                        options: ["이것", "그것", "저것", "여기"],
+                        correct: 1
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 물 ___ (Suv bering)",
+                        options: ["주세요", "해주세요", "가세요", "와세요"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 한국어를 가르쳐 ___. (Koreys tilini o'rgatib bering)",
+                        options: ["주세요", "해주세요", "가르쳐요", "말하세요"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: ___ 어디예요? (Bu yer qayerda?)",
+                        options: ["이곳", "그곳", "저곳", "여기"],
+                        correct: 3
+                    },
+
+                    // Gap tuzish
+                    {
+                        type: 'sentence_building',
+                        instruction: "Berilgan so'zlardan gap tuzing:",
+                        words: ["이것", "뭐", "예요", "?"],
+                        correctAnswer: "이것이 뭐예요?"
+                    },
+
+                    // Savol-javob
+                    {
+                        question: "'Bu nima?' ni koreys tiliga tarjima qiling:",
+                        options: ["그것이 뭐예요?", "이것이 뭐예요?", "저것이 뭐예요?", "여기가 뭐예요?"],
+                        correct: 1
+                    },
+                    {
+                        question: "'Ana u yer qayerda?' ni koreys tiliga tarjima qiling:",
+                        options: ["여기가 어디예요?", "거기가 어디예요?", "저기가 어디예요?", "어디가 저기예요?"],
+                        correct: 2
+                    },
+                    {
+                        question: "'Yordam bering' ni koreys tiliga tarjima qiling:",
+                        options: ["가르쳐 주세요", "도와주세요", "보여주세요", "말씀해 주세요"],
+                        correct: 1
+                    },
+
+                    // Ko'rsatish olmoshlari farqi
+                    {
+                        question: "이, 그, 저 farqini tushuntiring. 'Bu' uchun qaysi so'z ishlatiladi?",
+                        options: ["저 (uzoq masofada)", "그 (o'rta masofada)", "이 (yaqin masofada)", "여기 (bu yerda)"],
+                        correct: 2
+                    },
+                    {
+                        question: "O'rta masofadagi narsani ko'rsatish uchun qaysi so'z ishlatiladi?",
+                        options: ["이", "그", "저", "거기"],
+                        correct: 1
+                    },
+                    {
+                        question: "'Ana u kitob' ni koreys tiliga tarjima qiling:",
+                        options: ["이 책", "그 책", "저 책", "여기 책"],
+                        correct: 2
+                    },
+
+                    // Iltimos ifodalari
+                    {
+                        question: "'Ko'rsatib bering' ni koreys tiliga tarjima qiling:",
+                        options: ["가르쳐 주세요", "도와주세요", "보여주세요", "주세요"],
+                        correct: 2
+                    },
+                    {
+                        question: "'Ayting' (hurmatli) ni koreys tiliga tarjima qiling:",
+                        options: ["말하세요", "말씀해 주세요", "가르쳐 주세요", "보여주세요"],
+                        correct: 1
+                    },
+                    {
+                        question: "주세요 qanday ma'noda ishlatiladi?",
+                        options: ["Buyruq berish", "Iltimos qilish", "Savol berish", "Rad etish"],
+                        correct: 1
+                    },
+
+                    // Amaliy mashq
+                    {
+                        question: "Do'konda: 'Ana u narsani ko'rsatib bering' deb qanday deyiladi?",
+                        options: ["이것을 보여주세요", "그것을 보여주세요", "저것을 보여주세요", "여기를 보여주세요"],
+                        correct: 2
+                    }
+                ]
+            },
+
+            {
+                id: 3,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/17",
+                title: "'-dir' shakllari (rasmiy va norasmiy)",
+                korean: "존댓말과 반말",
+                description: "Rasmiy va norasmiy muloqot shakllarini o'rganish",
+                vocabulary: [
+                    { korean: "입니다", uzbek: "-dir (rasmiy)", pronunciation: "imnida" },
+                    { korean: "이에요/예요", uzbek: "-dir (norasmiy)", pronunciation: "ieyo/yeyo" },
+                    { korean: "학생입니다", uzbek: "Talaba-man", pronunciation: "haksaengimnida" },
+                    { korean: "선생님이에요", uzbek: "O'qituvchi-man", pronunciation: "seonsaengnim-ieyo" },
+                    { korean: "한국사람", uzbek: "Koreys odami", pronunciation: "hanguk-saram" },
+                    { korean: "저", uzbek: "Men", pronunciation: "jeo" },
+                    { korean: "너", uzbek: "Sen", pronunciation: "neo" },
+                    { korean: "그/그녀", uzbek: "U (qiz/bola)", pronunciation: "geu/geunyeo" },
+                    { korean: "우리", uzbek: "Biz", pronunciation: "uri" },
+                    { korean: "여러분", uzbek: "Sizlar", pronunciation: "yeoreobun" },
+                    { korean: "그들", uzbek: "Ular", pronunciation: "geudeul" },
+
+                    // Kasblar va maqomlar
+                    { korean: "학생", uzbek: "O'quvchi", pronunciation: "haksaeng" },
+                    { korean: "선생님", uzbek: "O'qituvchi", pronunciation: "seonsaengnim" },
+                    { korean: "의사", uzbek: "Shifokor", pronunciation: "uisa" },
+                    { korean: "친구", uzbek: "Do'st", pronunciation: "chingu" },
+                    { korean: "동생", uzbek: "Ukam/singlim (kichik aka-uka)", pronunciation: "dongsaeng" },
+
+                    // Ob-havo va kun
+                    { korean: "오늘", uzbek: "Bugun", pronunciation: "oneul" },
+                    { korean: "날씨", uzbek: "Havo", pronunciation: "nalssi" },
+                    { korean: "덥다", uzbek: "Issiq", pronunciation: "deopda" },
+                    { korean: "비 오다", uzbek: "Yomg'ir yog'moq", pronunciation: "bi oda" },
+                    { korean: "좋다", uzbek: "Yaxshi", pronunciation: "jota" },
+
+                    // Umumiy so'zlar
+                    { korean: "책", uzbek: "Kitob", pronunciation: "chaek" },
+                    { korean: "재미있다", uzbek: "Qiziq", pronunciation: "jaemiitda" },
+                    { korean: "고양이", uzbek: "Mushuk", pronunciation: "goyangi" },
+                    { korean: "귀엽다", uzbek: "Yoqimli", pronunciation: "gwiyeopda" },
+                    { korean: "예쁘다", uzbek: "Chiroyli", pronunciation: "yeppeuda" },
+                    { korean: "이름", uzbek: "Ism", pronunciation: "ireum" }
+
+
+                ],
+                exercises: [
+                    {
+                        question: "Bo'sh joyni to'ldiring: 저는 학생 ___.",
+                        options: ["입니다", "입니까?", "이에요", "예요"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 저 사람은 의사 ___.",
+                        options: ["입니다", "입니까?", "이에요", "예요"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 이분은 선생님 ___?",
+                        options: ["입니다", "입니까", "이에요", "예요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 그 사람은 한국 사람 ___?",
+                        options: ["입니다", "입니까", "이에요", "예요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 제 친구는 가수 ___.",
+                        options: ["입니다", "입니까?", "이에요", "예요"],
+                        correct: 0
+                    },
+
+                    // Gap tuzish - bitta mashqda barchasi
+                    {
+                        type: 'sentence_building',
+                        instruction: "Berilgan so'zlardan har biridan bittadan gap tuzing:",
+                        words: ["배우", "일본 사람", "회사원", "학생", "의사"],
+                        correctAnswer: "Namuna: 이 사람은 배우입니다. / 그 사람은 배우입니까?"
+                    },
+
+                    // To'g'ri/noto'g'ri
+                    {
+                        question: "Bu gap to'g'rimi? → 이 사람은 의사입니까.",
+                        options: ["To'g'ri", "Noto'g'ri (? belgisi kerak)", "Noto'g'ri (입니다 bo'lishi kerak)", "Noto'g'ri (은/는 kerak emas)"],
+                        correct: 1
+                    },
+                    {
+                        question: "Bu gap to'g'rimi? → 저는 학생입니다?",
+                        options: ["To'g'ri", "Noto'g'ri (? belgisi kerak emas)", "Noto'g'ri (입니까 bo'lishi kerak)", "Noto'g'ri (는 kerak emas)"],
+                        correct: 1
+                    },
+                    {
+                        question: "Bu gap to'g'rimi? → 그 사람은 배우입니다.",
+                        options: ["To'g'ri", "Noto'g'ri", "? belgisi kerak", "입니까 bo'lishi kerak"],
+                        correct: 0
+                    },
+
+                    // Test savollari
+                    {
+                        question: "저는 한국 사람 ___. - Bo'sh joyni to'ldiring:",
+                        options: ["입니까?", "입니다", "입니다?", "입니디"],
+                        correct: 1
+                    },
+                    {
+                        question: "Qaysi gap to'g'ri tuzilgan?",
+                        options: ["이 사람은 배우입니까?", "이 사람 배우입니다?", "이 사람은 의사입니다?", "이 사람은 학생입니가?"],
+                        correct: 0
+                    },
+                    {
+                        question: "'U ofis xodimimi?' - Tarjima qiling:",
+                        options: ["그는 배우입니까?", "그는 회사원입니까?", "그 사람은 친구입니까?", "그는 회사원입니다?"],
+                        correct: 1
+                    },
+                    {
+                        question: "입니다 qachon ishlatiladi?",
+                        options: ["Savol gapda", "Xabar gapda", "Buyruq gapda", "Iltimos gapda"],
+                        correct: 1
+                    },
+                    {
+                        question: "입니까? qachon ishlatiladi?",
+                        options: ["Xabar gapda", "Savol gapda", "Buyruq gapda", "Iltimos gapda"],
+                        correct: 1
+                    },
+                    {
+                        question: "'Men shifokorman' - Tarjima qiling:",
+                        options: ["저는 의사예요", "저는 의사입니다", "나는 의사야", "저 의사입니다"],
+                        correct: 1
+                    },
+                    {
+                        question: "'Bu kishi o'qituvchimi?' - Tarjima qiling:",
+                        options: ["이분은 선생님이에요?", "이분은 선생님입니까?", "이 사람 선생님이야?", "이분 선생님입니까?"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+
+                id: 5,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/19",
+                title: "Koreys tilida bog'lovchilar",
+                korean: "한국어 접속사",
+                description: "Gaplarni bog'lovchi so'zlarni o'rganish",
+                vocabulary: [
+                    { korean: "책상", uzbek: "Parta", pronunciation: "chaeksang" },
+                    { korean: "의자", uzbek: "Stul", pronunciation: "uija" },
+                    { korean: "책", uzbek: "Kitob", pronunciation: "chaek" },
+                    { korean: "공책", uzbek: "Daftar", pronunciation: "gongchaek" },
+                    { korean: "볼펜", uzbek: "Ruchka", pronunciation: "bolpen" },
+                    { korean: "연필", uzbek: "Qalam", pronunciation: "yeonpil" },
+                    { korean: "가방", uzbek: "Sumka", pronunciation: "gabang" },
+                    { korean: "지우개", uzbek: "O'chirg'ich", pronunciation: "jiugae" },
+                    { korean: "시계", uzbek: "Soat", pronunciation: "sigye" },
+                    { korean: "모자", uzbek: "Bosh kiyim", pronunciation: "moja" },
+                    { korean: "우산", uzbek: "Soyabon", pronunciation: "usan" },
+                    { korean: "신문", uzbek: "Gazeta", pronunciation: "sinmun" },
+                    { korean: "사전", uzbek: "Lug'at", pronunciation: "sajeon" },
+                    { korean: "안경", uzbek: "Ko'zoynak", pronunciation: "angyeong" },
+                    { korean: "휴대폰", uzbek: "Telefon", pronunciation: "hyudaepon" },
+                    { korean: "동전", uzbek: "Tanga", pronunciation: "dongjeon" },
+                    { korean: "차", uzbek: "Mashina", pronunciation: "cha" },
+                    { korean: "한국어", uzbek: "Koreys tili", pronunciation: "hangugeo" },
+                    { korean: "뭐", uzbek: "Nima", pronunciation: "mwo" },
+                    { korean: "창문", uzbek: "Deraza", pronunciation: "changmun" },
+                    { korean: "와/과", uzbek: "Va (otlar bilan)", pronunciation: "wa/gwa" },
+                    { korean: "하고", uzbek: "Va (norasmiy)", pronunciation: "hago" }
+                ],
+                exercises: [
+                    {
+                        question: "'Va' ma'nosida qaysi bog'lovchi ishlatiladi?",
+                        options: ["그리고", "그런데", "그래서", "하지만"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Shuning uchun' ma'nosida qaysi bog'lovchi ishlatiladi?",
+                        options: ["그리고", "그런데", "그래서", "하지만"],
+                        correct: 2
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 나는 친구 ____ 공원에 갔어요.",
+                        options: ["와", "과", "하고", "그리고"],
+                        correct: 2
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 우유 ____ 빵을 샀어요.",
+                        options: ["와", "과", "하고", "그리고"],
+                        correct: 0
+                    },
+                    {
+                        question: "Bo'sh joyni to'ldiring: 한국어 ____ 일본어를 공부해요.",
+                        options: ["와", "과", "하고", "그리고"],
+                        correct: 0
+                    },
+                    {
+                        question: "책 + 연필을 qanday bog'lash kerak?",
+                        options: ["책와 연필", "책과 연필", "책하고 연필", "책 그리고 연필"],
+                        correct: 1
+                    },
+                    {
+                        question: "고양이 + 강아지를 qanday bog'lash kerak?",
+                        options: ["고양이와 강아지", "고양이과 강아지", "고양이하고 강아지", "고양이 그리고 강아지"],
+                        correct: 0
+                    },
+                    {
+                        question: "'나는 동생 그리고 놀았어요'ni to'g'ri shaklda yozing:",
+                        options: ["나는 동생와 놀았어요", "나는 동생과 놀았어요", "나는 동생하고 놀았어요", "나는 동생이랑 놀았어요"],
+                        correct: 2
+                    },
+                    {
+                        question: "'Men do'stim bilan bog'ga bordim'ni tarjima qiling:",
+                        options: ["나는 친구와 공원에 갔어요", "나는 친구하고 공원에 갔어요", "나는 친구랑 공원에 갔어요", "Hammasi to'g'ri"],
+                        correct: 3
+                    },
+                    {
+                        question: "'Men sut va non sotib oldim'ni tarjima qiling:",
+                        options: ["나는 우유와 빵을 샀어요", "나는 우유하고 빵을 샀어요", "나는 우유랑 빵을 샀어요", "Hammasi to'g'ri"],
+                        correct: 3
+                    }
+                ]
+            },
+            {
+                id: 6,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/20",
+                title: "Hozirgi zamon (아요/어요/해요)",
+                korean: "현재시제",
+                description: "Hozirgi zamon fe'l shakllarini o'rganish",
+                vocabulary: [
+                    { korean: "가요", uzbek: "Boradi", pronunciation: "gayo" },
+                    { korean: "와요", uzbek: "Keladi", pronunciation: "wayo" },
+                    { korean: "해요", uzbek: "Qiladi", pronunciation: "haeyo" },
+                    { korean: "먹어요", uzbek: "Yeydi", pronunciation: "meogeoyo" },
+                    { korean: "봐요", uzbek: "Ko'radi", pronunciation: "bwayo" }
+                ],
+                exercises: [
+                    {
+                        question: "'가다' fe'lining hozirgi zamon shakli qanday?",
+                        options: ["가요", "갔어요", "갈 거예요", "가고 있어요"],
+                        correct: 0
+                    },
+                    {
+                        question: "'하다' fe'lining hozirgi zamon shakli qanday?",
+                        options: ["하요", "해요", "했어요", "할 거예요"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 7,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/21",
+                title: "Tushum kelishigi va chegara qo'shimchalari",
+                korean: "목적격과 한정사",
+                description: "Tushum kelishigi va chegara belgilovchi qo'shimchalarni o'rganish",
+                vocabulary: [
+                    { korean: "을/를", uzbek: "Tushum kelishigi", pronunciation: "eul/reul" },
+                    { korean: "만", uzbek: "Faqat", pronunciation: "man" },
+                    { korean: "도", uzbek: "Ham", pronunciation: "do" },
+                    { korean: "밥을", uzbek: "Ovqatni", pronunciation: "babeul" },
+                    { korean: "물만", uzbek: "Faqat suv", pronunciation: "mulman" }
+                ],
+                exercises: [
+                    {
+                        question: "'밥'dan keyin tushum kelishigi qo'shimchasi qanday?",
+                        options: ["을", "를", "이", "가"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Faqat' ma'nosida qaysi qo'shimcha ishlatiladi?",
+                        options: ["도", "만", "을", "에"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 8,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/22",
+                title: "Inkor shakli va bor-yo'q tushunchasi",
+                korean: "부정문과 존재표현",
+                description: "Inkor shakllar va mavjudlik ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "안", uzbek: "Inkor (안)", pronunciation: "an" },
+                    { korean: "없어요", uzbek: "Yo'q", pronunciation: "eopseoyo" },
+                    { korean: "있어요", uzbek: "Bor", pronunciation: "isseoyo" },
+                    { korean: "안 가요", uzbek: "Bormaydi", pronunciation: "an gayo" },
+                    { korean: "시간이 없어요", uzbek: "Vaqt yo'q", pronunciation: "sigani eopseoyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'안 가요' nimani bildiradi?",
+                        options: ["Boradi", "Bormaydi", "Borgan", "Bormoqchi"],
+                        correct: 1
+                    },
+                    {
+                        question: "'있어요' nimani bildiradi?",
+                        options: ["Yo'q", "Bor", "Keladi", "Ketadi"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 9,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/23",
+                title: "Harakat fe'llari va joy-holat bildiruvchi so'zlar",
+                korean: "동작동사와 위치표현",
+                description: "Harakat fe'llari va joylashuv ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "앉아요", uzbek: "O'tiradi", pronunciation: "anjayo" },
+                    { korean: "서요", uzbek: "Turadi", pronunciation: "seoyo" },
+                    { korean: "누워요", uzbek: "Yotadi", pronunciation: "nuwoyo" },
+                    { korean: "위에", uzbek: "Ustida", pronunciation: "wie" },
+                    { korean: "아래에", uzbek: "Ostida", pronunciation: "araee" }
+                ],
+                exercises: [
+                    {
+                        question: "'앉다' fe'li nimani bildiradi?",
+                        options: ["Turish", "O'tirish", "Yotish", "Yurish"],
+                        correct: 1
+                    },
+                    {
+                        question: "'위에' so'zi nimani bildiradi?",
+                        options: ["Ostida", "Ustida", "Ichida", "Tashqarida"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 10,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/24",
+                title: "Sanoq va kunlar tizimi",
+                korean: "수와 날짜체계",
+                description: "Sonlar va kunlar tizimini o'rganish",
+                vocabulary: [
+                    { korean: "하나", uzbek: "Bir (koreys soni)", pronunciation: "hana" },
+                    { korean: "일", uzbek: "Bir (xitoy soni)", pronunciation: "il" },
+                    { korean: "월요일", uzbek: "Dushanba", pronunciation: "woryoil" },
+                    { korean: "화요일", uzbek: "Seshanba", pronunciation: "hwayoil" },
+                    { korean: "오늘", uzbek: "Bugun", pronunciation: "oneul" }
+                ],
+                exercises: [
+                    {
+                        question: "Koreys sonida 'bir' qanday aytiladi?",
+                        options: ["하나", "일", "둘", "셋"],
+                        correct: 0
+                    },
+                    {
+                        question: "'월요일' qaysi kun?",
+                        options: ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 11,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/25",
+                title: "Jo'nalish kelishigi va o'tgan zamon",
+                korean: "방향격과 과거시제",
+                description: "Jo'nalish kelishigi va o'tgan zamon shakllarini o'rganish",
+                vocabulary: [
+                    { korean: "에/에게", uzbek: "Ga, -ga (jo'nalish)", pronunciation: "e/ege" },
+                    { korean: "갔어요", uzbek: "Bordi", pronunciation: "gasseoyo" },
+                    { korean: "왔어요", uzbek: "Keldi", pronunciation: "wasseoyo" },
+                    { korean: "했어요", uzbek: "Qildi", pronunciation: "haesseoyo" },
+                    { korean: "먹었어요", uzbek: "Yedi", pronunciation: "meogeosseoyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'가다' fe'lining o'tgan zamon shakli qanday?",
+                        options: ["가요", "갔어요", "갈 거예요", "가고 있어요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Jo'nalish kelishigi uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["을/를", "이/가", "에/에게", "의"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 12,
+                telegramVideoUrl: "",
+                title: "Bog'lovchi qo'shimchalar va buyruq mayli",
+                korean: "접속어미와 명령형",
+                description: "Bog'lovchi qo'shimchalar va buyruq shakllari",
+                vocabulary: [
+                    { korean: "고", uzbek: "Va (bog'lovchi)", pronunciation: "go" },
+                    { korean: "아서/어서", uzbek: "Va keyin", pronunciation: "aseo/eoseo" },
+                    { korean: "세요", uzbek: "Buyuring (hurmat)", pronunciation: "seyo" },
+                    { korean: "아라/어라", uzbek: "Buyruq shakli", pronunciation: "ara/eora" },
+                    { korean: "가세요", uzbek: "Boring", pronunciation: "gaseyo" }
+                ],
+                exercises: [
+                    {
+                        question: "Hurmatli buyruq shakli uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["아라/어라", "세요", "고", "지만"],
+                        correct: 1
+                    },
+                    {
+                        question: "'Va' ma'nosida qaysi qo'shimcha ishlatiladi?",
+                        options: ["고", "지만", "면", "니까"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 13,
+                telegramVideoUrl: "",
+                title: "Rasmiy murojaat va taklif shakllari",
+                korean: "정중한 표현과 제안표현",
+                description: "Rasmiy murojaat va taklif qilish usullari",
+                vocabulary: [
+                    { korean: "실례합니다", uzbek: "Uzr so'raymen", pronunciation: "sillyehamnida" },
+                    { korean: "어떻게 생각하세요?", uzbek: "Qanday o'ylaysiz?", pronunciation: "eotteoke saenggakaseyo" },
+                    { korean: "괜찮으세요?", uzbek: "Yaxshimisiz?", pronunciation: "gwaenchaneuseyo" },
+                    { korean: "같이 갈까요?", uzbek: "Birga boramizmi?", pronunciation: "gachi galkkayo" },
+                    { korean: "어떠세요?", uzbek: "Qanday bo'ladi?", pronunciation: "eotteoseyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'Uzr so'raymen' qanday aytiladi?",
+                        options: ["죄송합니다", "실례합니다", "감사합니다", "안녕하세요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Taklif qilish uchun qaysi ifoda ishlatiladi?",
+                        options: ["갈까요?", "가세요", "갔어요", "가요"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 14,
+                telegramVideoUrl: "",
+                title: "Ko'rsatish olmoshlari va -네요 grammatikasi",
+                korean: "지시대명사와 -네요 문법",
+                description: "Ko'rsatish olmoshlari va hayrat ifodasi",
+                vocabulary: [
+                    { korean: "이것", uzbek: "Bu narsa", pronunciation: "igeot" },
+                    { korean: "그것", uzbek: "U narsa", pronunciation: "geugeot" },
+                    { korean: "저것", uzbek: "U narsa (uzoq)", pronunciation: "jeogeot" },
+                    { korean: "예쁘네요", uzbek: "Chiroyli ekan", pronunciation: "yeppeunneyo" },
+                    { korean: "맛있네요", uzbek: "Mazali ekan", pronunciation: "masinneyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'-네요' qo'shimchasi nimani ifodalaydi?",
+                        options: ["Buyruq", "So'roq", "Hayrat", "Inkor"],
+                        correct: 2
+                    },
+                    {
+                        question: "Uzoq narsani ko'rsatish uchun qaysi olmosh ishlatiladi?",
+                        options: ["이것", "그것", "저것", "무엇"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 15,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/28",
+                title: "Qaratqich kelishigi va fe'l darajalari",
+                korean: "관형격과 동사의 단계",
+                description: "Qaratqich kelishigi va fe'l darajalarini o'rganish",
+                vocabulary: [
+                    { korean: "의", uzbek: "Ning (qaratqich)", pronunciation: "ui" },
+                    { korean: "나의 책", uzbek: "Mening kitobim", pronunciation: "naui chaek" },
+                    { korean: "친구의 집", uzbek: "Do'stning uyi", pronunciation: "chinguui jip" },
+                    { korean: "시작하다", uzbek: "Boshlash", pronunciation: "sijakada" },
+                    { korean: "끝나다", uzbek: "Tugash", pronunciation: "kkeunnada" }
+                ],
+                exercises: [
+                    {
+                        question: "Qaratqich kelishigi uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["을/를", "이/가", "의", "에"],
+                        correct: 2
+                    },
+                    {
+                        question: "'나의 책'ni qanday o'qish kerak?",
+                        options: ["나을 책", "나가 책", "나의 책", "나에 책"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 16,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/29",
+                title: "Hurmat shakllari va ko'plik qo'shimchalari",
+                korean: "존댓말과 복수표현",
+                description: "Hurmat shakllari va ko'plik qo'shimchalarini o'rganish",
+                vocabulary: [
+                    { korean: "들", uzbek: "Ko'plik qo'shimchasi", pronunciation: "deul" },
+                    { korean: "학생들", uzbek: "Talabalar", pronunciation: "haksaengdeul" },
+                    { korean: "친구들", uzbek: "Do'stlar", pronunciation: "chingudeul" },
+                    { korean: "선생님", uzbek: "O'qituvchi (hurmatli)", pronunciation: "seonsaengnim" },
+                    { korean: "어머님", uzbek: "Onam (hurmatli)", pronunciation: "eomeonim" }
+                ],
+                exercises: [
+                    {
+                        question: "Ko'plik shakli uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["님", "들", "씨", "아"],
+                        correct: 1
+                    },
+                    {
+                        question: "Hurmat bildirish uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["님", "들", "아", "야"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 17,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/30",
+                title: "Vaqt chegaralari va ketma-ketlik ifodalari",
+                korean: "시간한정과 순서표현",
+                description: "Vaqt chegaralari va ketma-ketlik ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "부터", uzbek: "Dan boshlab", pronunciation: "buteo" },
+                    { korean: "까지", uzbek: "Gacha", pronunciation: "kkaji" },
+                    { korean: "동안", uzbek: "Davomida", pronunciation: "dongan" },
+                    { korean: "먼저", uzbek: "Avval", pronunciation: "meonjeo" },
+                    { korean: "그 다음에", uzbek: "Keyin", pronunciation: "geu daeume" }
+                ],
+                exercises: [
+                    {
+                        question: "'Dan boshlab' ma'nosida qaysi so'z ishlatiladi?",
+                        options: ["부터", "까지", "동안", "에서"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Gacha' ma'nosida qaysi so'z ishlatiladi?",
+                        options: ["부터", "까지", "동안", "에서"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 18,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/32",
+                title: "Kelasi zamon",
+                korean: "미래시제",
+                description: "Kelasi zamon shakllarini o'rganish",
+                vocabulary: [
+                    { korean: "을/를 거예요", uzbek: "Kelasi zamon qo'shimchasi", pronunciation: "eul/reul geoyeyo" },
+                    { korean: "갈 거예요", uzbek: "Boradi (kelasi)", pronunciation: "gal geoyeyo" },
+                    { korean: "할 거예요", uzbek: "Qiladi (kelasi)", pronunciation: "hal geoyeyo" },
+                    { korean: "먹을 거예요", uzbek: "Yeydi (kelasi)", pronunciation: "meogeul geoyeyo" },
+                    { korean: "올 거예요", uzbek: "Keladi (kelasi)", pronunciation: "ol geoyeyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'가다' fe'lining kelasi zamon shakli qanday?",
+                        options: ["가요", "갔어요", "갈 거예요", "가고 있어요"],
+                        correct: 2
+                    },
+                    {
+                        question: "Kelasi zamon uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["았/었어요", "아요/어요", "을/를 거예요", "고 있어요"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 19,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/33",
+                title: "Taqiq va chegaralov shakllari",
+                korean: "금지와 제한표현",
+                description: "Taqiq va chegaralov ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "지 마세요", uzbek: "Qilmang", pronunciation: "ji maseyo" },
+                    { korean: "면 안 돼요", uzbek: "Bo'lmaydi", pronunciation: "myeon an dwaeyo" },
+                    { korean: "금지", uzbek: "Taqiq", pronunciation: "geumji" },
+                    { korean: "하지 마세요", uzbek: "Qilmang", pronunciation: "haji maseyo" },
+                    { korean: "가지 마세요", uzbek: "Bormang", pronunciation: "gaji maseyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'Qilmang' qanday aytiladi?",
+                        options: ["하세요", "하지 마세요", "했어요", "할 거예요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Taqiq uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["세요", "지 마세요", "아요/어요", "을/를"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 20,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/34",
+                title: "Zaruriyat va majburiyat ifodalari",
+                korean: "필요성과 의무표현",
+                description: "Zaruriyat va majburiyat ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "야 해요", uzbek: "Kerak", pronunciation: "ya haeyo" },
+                    { korean: "야 돼요", uzbek: "Bo'ladi", pronunciation: "ya dwaeyo" },
+                    { korean: "필요해요", uzbek: "Kerak", pronunciation: "piryohaeyo" },
+                    { korean: "가야 해요", uzbek: "Borish kerak", pronunciation: "gaya haeyo" },
+                    { korean: "해야 돼요", uzbek: "Qilish kerak", pronunciation: "haeya dwaeyo" }
+                ],
+                exercises: [
+                    {
+                        question: "'Borish kerak' qanday aytiladi?",
+                        options: ["가요", "갔어요", "가야 해요", "갈 거예요"],
+                        correct: 2
+                    },
+                    {
+                        question: "Zaruriyat uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["야 해요", "아요/어요", "았/었어요", "을/를"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 21,
+                telegramVideoUrl: "https://t.me/c/2365749092/8/35",
+                title: "So'roq shakllari va davom etayotgan harakat",
+                korean: "의문문과 진행형",
+                description: "So'roq shakllari va davom etayotgan harakatni ifodalash",
+                vocabulary: [
+                    { korean: "고 있어요", uzbek: "Davom etmoqda", pronunciation: "go isseoyo" },
+                    { korean: "뭐 해요?", uzbek: "Nima qilyapsiz?", pronunciation: "mwo haeyo" },
+                    { korean: "어디 가요?", uzbek: "Qayerga boryapsiz?", pronunciation: "eodi gayo" },
+                    { korean: "먹고 있어요", uzbek: "Yeb o'tir", pronunciation: "meokgo isseoyo" },
+                    { korean: "공부하고 있어요", uzbek: "O'qiyapman", pronunciation: "gongbuhago isseoyo" }
+                ],
+                exercises: [
+                    {
+                        question: "Davom etayotgan harakat uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["고 있어요", "았/었어요", "을/를 거예요", "아요/어요"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Nima qilyapsiz?' qanday aytiladi?",
+                        options: ["뭐 했어요?", "뭐 해요?", "뭐 할 거예요?", "뭐 하세요?"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 22,
+                telegramVideoUrl: "",
+                title: "Fe'lning bo'lishsiz shakllari va maqsad ifodalari",
+                korean: "동사의 부정형과 목적표현",
+                description: "Fe'lning bo'lishsiz shakllari va maqsad ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "지 않아요", uzbek: "Qilmaydi", pronunciation: "ji anayo" },
+                    { korean: "러/으러", uzbek: "Uchun (maqsad)", pronunciation: "reo/eureo" },
+                    { korean: "가지 않아요", uzbek: "Bormaydi", pronunciation: "gaji anayo" },
+                    { korean: "먹으러 가요", uzbek: "Yeyish uchun boradi", pronunciation: "meogeureo gayo" },
+                    { korean: "보러 와요", uzbek: "Ko'rish uchun keladi", pronunciation: "boreo wayo" }
+                ],
+                exercises: [
+                    {
+                        question: "Bo'lishsiz shakl uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["지 않아요", "아요/어요", "고 있어요", "을/를"],
+                        correct: 0
+                    },
+                    {
+                        question: "Maqsad uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["고", "러/으러", "지만", "아서/어서"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 23,
+                telegramVideoUrl: "",
+                title: "Fe'lning yordamchi shakllari va yo'nalish ifodalari",
+                korean: "보조동사와 방향표현",
+                description: "Yordamchi fe'llar va yo'nalishni ifodalash",
+                vocabulary: [
+                    { korean: "환자", uzbek: "Bemor", pronunciation: "hwanja" },
+                    { korean: "의사", uzbek: "Doktor", pronunciation: "uisa" },
+                    { korean: "씻다", uzbek: "Yuvmoq", pronunciation: "ssitda" },
+                    { korean: "손님", uzbek: "Mehmon", pronunciation: "sonnim" },
+                    { korean: "내년", uzbek: "Kelasi yil", pronunciation: "naenyeon" },
+                    { korean: "결혼하다", uzbek: "Turmush qurmoq", pronunciation: "gyeolhonhada" },
+                    { korean: "내다", uzbek: "Topshirmoq", pronunciation: "naeda" },
+                    { korean: "알람", uzbek: "Budilnik", pronunciation: "allam" },
+                    { korean: "끄다", uzbek: "O'chirmoq", pronunciation: "kkeuda" },
+                    { korean: "걱정", uzbek: "Xavotir", pronunciation: "geokjeong" },
+
+                    { korean: "발음", uzbek: "Talaffuz", pronunciation: "bareum" },
+                    { korean: "PC방", uzbek: "Kompyuter xonasi", pronunciation: "pisibang" },
+                    { korean: "싸우다", uzbek: "Urushmoq", pronunciation: "ssauda" },
+                    { korean: "이렇게", uzbek: "Bunday", pronunciation: "ireoke" },
+                    { korean: "금연", uzbek: "Chekish taqiqlanadi", pronunciation: "geumyeon" },
+                    { korean: "주차금지", uzbek: "Mashina qo'yish taqiqlanadi", pronunciation: "juchageumji" },
+                    { korean: "코 감기", uzbek: "Burun shamollashi", pronunciation: "ko gamgi" },
+                    { korean: "목 감기", uzbek: "Tomoq shamollashi", pronunciation: "mok gamgi" },
+                    { korean: "몸살 감기", uzbek: "Badan shamollashi", pronunciation: "momsal gamgi" },
+                    { korean: "소금물", uzbek: "Tuzli suv", pronunciation: "sogeummul" },
+
+                    { korean: "전화번호", uzbek: "Telefon raqami", pronunciation: "jeonhwabeonho" },
+                    { korean: "문자를 받다", uzbek: "SMS olmoq", pronunciation: "munjareul batda" },
+                    { korean: "문자를 보내다", uzbek: "SMS jo'natmoq", pronunciation: "munjareul bonaeda" },
+                    { korean: "전화를 받다", uzbek: "Qo'ng'iroqni qabul qilmoq", pronunciation: "jeonhwareul batda" },
+                    { korean: "전화하다", uzbek: "Qo'ng'iroq qilmoq", pronunciation: "jeonhwahada" },
+                    { korean: "그렇습니다", uzbek: "Shunday", pronunciation: "geureoseumnida" },
+                    { korean: "오랜만이에요", uzbek: "Ko'rishmaganimizga ancha bo'ldi", pronunciation: "oraenmanieyo" },
+                    { korean: "일", uzbek: "Ish", pronunciation: "il" },
+                    { korean: "사무실", uzbek: "Ofis", pronunciation: "samusil" },
+                    { korean: "맛없다", uzbek: "Bemaza", pronunciation: "mateobda" },
+                    { korean: "왜", uzbek: "Nima uchun", pronunciation: "wae" }
+                ],
+                exercises: [
+                    {
+                        question: "'Qilib bering' qanday aytiladi?",
+                        options: ["해요", "해 주세요", "했어요", "할 거예요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Yordamchi fe'l sifatida qaysi so'z ishlatiladi?",
+                        options: ["하다", "주다", "가다", "오다"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 24,
+                telegramVideoUrl: "",
+                title: "Maslahat shakli va aniqlik konstruksiyalari",
+                korean: "조언형과 확실성 구조",
+                description: "Maslahat berish va aniqlik ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "조금 전", uzbek: "Biroz oldin", pronunciation: "jogeum jeon" },
+                    { korean: "늦잠", uzbek: "Uxlab qolmoq", pronunciation: "neutjam" },
+                    { korean: "여행사", uzbek: "Sayohat agentligi", pronunciation: "yeohaengsa" },
+                    { korean: "아까", uzbek: "Biroz oldin", pronunciation: "akka" },
+                    { korean: "그럼요", uzbek: "Albatta", pronunciation: "geureomyo" },
+                    { korean: "이따", uzbek: "Keyinroq", pronunciation: "itta" },
+                    { korean: "다른", uzbek: "Boshqa", pronunciation: "dareun" },
+                    { korean: "다", uzbek: "Hammasi", pronunciation: "da" },
+                    { korean: "장소", uzbek: "Joy, manzil", pronunciation: "jangso" },
+                    { korean: "몰라서", uzbek: "Bilmaganim uchun", pronunciation: "mollaseo" },
+
+                    { korean: "도둑이 들다", uzbek: "O'g'ri kirmoq", pronunciation: "doduki deulda" },
+                    { korean: "사고가 나다", uzbek: "Avariya sodir bo'lmoq", pronunciation: "sagoga nada" },
+                    { korean: "불이 나다", uzbek: "Olov chiqmoq", pronunciation: "buri nada" },
+                    { korean: "버스", uzbek: "Avtobus", pronunciation: "beoseu" },
+                    { korean: "기차", uzbek: "Poyezd", pronunciation: "gicha" },
+                    { korean: "비행기", uzbek: "Samolyot", pronunciation: "bihaenggi" },
+                    { korean: "배", uzbek: "Kema", pronunciation: "bae" },
+                    { korean: "택시", uzbek: "Taksi", pronunciation: "taeksi" },
+                    { korean: "자전거", uzbek: "Velosiped", pronunciation: "jajeongeo" },
+                    { korean: "지하철", uzbek: "Metro", pronunciation: "jihacheol" },
+
+                    { korean: "오토바이", uzbek: "Mototsikl", pronunciation: "otobai" },
+                    { korean: "타다", uzbek: "Minmoq", pronunciation: "tada" },
+                    { korean: "내리다", uzbek: "Tushmoq", pronunciation: "naerida" },
+                    { korean: "버스 정류장", uzbek: "Avtobus bekati", pronunciation: "beoseu jeonglyujang" },
+                    { korean: "기차역", uzbek: "Poyezd bekati", pronunciation: "gichayeok" },
+                    { korean: "지하철역", uzbek: "Metro bekati", pronunciation: "jihacheolyeok" },
+                    { korean: "닫다", uzbek: "Yopmoq", pronunciation: "datda" },
+                    { korean: "돕다", uzbek: "Yordam bermoq", pronunciation: "dopda" },
+                    { korean: "칠판", uzbek: "Doska", pronunciation: "chilpan" },
+                    { korean: "울다", uzbek: "Yig'lamoq", pronunciation: "ulda" }
+                ],
+                exercises: [
+                    {
+                        question: "Maslahat berish uchun qaysi shakl ishlatiladi?",
+                        options: ["세요", "아요/어요", "았/었어요", "을/를"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Aniq' ma'nosida qaysi so'z ishlatiladi?",
+                        options: ["아마", "분명히", "혹시", "그냥"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 25,
+                telegramVideoUrl: "",
+                title: "Xohish-istak grammatikasi (1-2 shaxs uchun)",
+                korean: "희망문법 (1-2인칭)",
+                description: "Xohish va istak ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "쭉", uzbek: "To'g'riga", pronunciation: "jjuk" },
+                    { korean: "한국말", uzbek: "Koreys tili", pronunciation: "hanguknmal" },
+                    { korean: "아직", uzbek: "Hali ham", pronunciation: "ajik" },
+                    { korean: "세우다", uzbek: "To'xtatmoq", pronunciation: "saeuda" },
+                    { korean: "신호등", uzbek: "Svetofor", pronunciation: "sinhodeung" },
+                    { korean: "정문", uzbek: "Asosiy darvoza", pronunciation: "jeongmun" },
+                    { korean: "창문", uzbek: "Deraza", pronunciation: "changmun" },
+                    { korean: "얼마전", uzbek: "Bir necha vaqt oldin", pronunciation: "eolmajeon" },
+                    { korean: "구급차", uzbek: "Tez yordam mashinasi", pronunciation: "gugeupcha" },
+                    { korean: "다음날", uzbek: "Keyingi kun", pronunciation: "daeumnal" },
+
+                    { korean: "편리하다", uzbek: "Qulay", pronunciation: "pyeollihada" },
+                    { korean: "사용하다", uzbek: "Foydalanmoq", pronunciation: "sayonghada" },
+                    { korean: "요금", uzbek: "To'lov", pronunciation: "yogeum" },
+                    { korean: "안에", uzbek: "Ichida", pronunciation: "ane" },
+                    { korean: "그럼", uzbek: "U holda", pronunciation: "geureom" },
+                    { korean: "깎다", uzbek: "Chegirma qilmoq, qirqmoq", pronunciation: "kkakda" },
+                    { korean: "나", uzbek: "Yoki", pronunciation: "na" },
+                    { korean: "유행이다", uzbek: "Mashxur bo'lmoq", pronunciation: "yuhaengida" },
+
+                    { korean: "셔츠", uzbek: "Ko'ylak", pronunciation: "syeocheu" },
+                    { korean: "모자", uzbek: "Bosh kiyim", pronunciation: "moja" },
+                    { korean: "바지", uzbek: "Shim", pronunciation: "baji" },
+                    { korean: "치마", uzbek: "Yubka", pronunciation: "chima" },
+                    { korean: "코트", uzbek: "Palto", pronunciation: "koteu" },
+                    { korean: "원피스", uzbek: "Ayollar ko'ylagi", pronunciation: "wonpiseu" },
+                    { korean: "구두", uzbek: "Tufli", pronunciation: "gudu" },
+                    { korean: "운동화", uzbek: "Krossovka", pronunciation: "undonghwa" },
+                    { korean: "양복", uzbek: "Kostyum", pronunciation: "yangbok" },
+                    { korean: "입다", uzbek: "Kiyim kiymoq", pronunciation: "ipda" }
+                ],
+                exercises: [
+                    {
+                        question: "Xohish uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["고 싶어요", "아요/어요", "을/를", "지 않아요"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Bormoqchiman' qanday aytiladi?",
+                        options: ["가요", "가고 싶어요", "갔어요", "갈 거예요"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 26,
+                telegramVideoUrl: "",
+                title: "Qobiliyat va maqsad ifodalari",
+                korean: "능력과 목적표현",
+                description: "Qobiliyat va maqsadni ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "신다", uzbek: "Oyoq kiyim kiymoq", pronunciation: "sinda" },
+                    { korean: "쓰다", uzbek: "Bosh kiyim kiymoq", pronunciation: "sseuda" },
+                    { korean: "크다", uzbek: "Katta", pronunciation: "keuda" },
+                    { korean: "작다", uzbek: "Kichkina", pronunciation: "jakda" },
+                    { korean: "길다", uzbek: "Uzun", pronunciation: "gilda" },
+                    { korean: "짧다", uzbek: "Qalta", pronunciation: "jjalda" },
+                    { korean: "높다", uzbek: "Baland", pronunciation: "nopda" },
+                    { korean: "낮다", uzbek: "Past", pronunciation: "natda" },
+                    { korean: "비싸다", uzbek: "Qimmat", pronunciation: "bissada" },
+                    { korean: "싸다", uzbek: "Arzon", pronunciation: "ssada" },
+
+                    { korean: "불편하다", uzbek: "Noqulay", pronunciation: "bulpyeonhada" },
+                    { korean: "두껍다", uzbek: "Qalin", pronunciation: "dukkeoda" },
+                    { korean: "얇다", uzbek: "Yupqa", pronunciation: "yalda" },
+                    { korean: "알다", uzbek: "Bilmoq", pronunciation: "alda" },
+                    { korean: "만들다", uzbek: "Tayyorlamoq", pronunciation: "mandeulda" },
+                    { korean: "살다", uzbek: "Yashamoq", pronunciation: "salda" },
+                    { korean: "놀다", uzbek: "O'ynamoq", pronunciation: "nolda" },
+                    { korean: "팔다", uzbek: "Sotmoq", pronunciation: "palda" },
+                    { korean: "열다", uzbek: "Ochmoq", pronunciation: "yeolda" },
+                    { korean: "어떤", uzbek: "Qanday", pronunciation: "eotteon" },
+
+                    { korean: "유행이다", uzbek: "Moda bo'lmoq", pronunciation: "yuhaengida" },
+                    { korean: "무섭다", uzbek: "Qo'rqinchli", pronunciation: "museopda" },
+                    { korean: "슬프다", uzbek: "G'amgin bo'lmoq", pronunciation: "seulpeuda" },
+                    { korean: "키", uzbek: "Bo'y", pronunciation: "ki" },
+                    { korean: "청바지", uzbek: "Jinsi shim", pronunciation: "cheongbaji" },
+                    { korean: "반바지", uzbek: "Sho'rtik", pronunciation: "banbaji" },
+                    { korean: "체격이 좋다", uzbek: "Qomati yaxshi", pronunciation: "chegyeogi jota" },
+                    { korean: "마음", uzbek: "Qalb", pronunciation: "maeum" },
+                    { korean: "미니스커트", uzbek: "Mini yubka", pronunciation: "miniseukeoteu" },
+                    { korean: "선물하다", uzbek: "Sovg'a qilmoq", pronunciation: "seonmulhada" }
+                ],
+                exercises: [
+                    {
+                        question: "Qobiliyat uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["을/를 수 있어요", "고 싶어요", "야 해요", "고 있어요"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Qila olaman' qanday aytiladi?",
+                        options: ["해요", "했어요", "할 수 있어요", "할 거예요"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 27,
+                telegramVideoUrl: "",
+                title: "Nomlanish va maqsad konstruksiyalari",
+                korean: "명명과 목적구조",
+                description: "Nomlanish va maqsad konstruksiyalarini o'rganish",
+                vocabulary: [
+                    { korean: "보내다", uzbek: "Jo'natmoq", pronunciation: "bonaeda" },
+                    { korean: "드리다", uzbek: "Bermoq (rasmiy)", pronunciation: "deurida" },
+                    { korean: "한번", uzbek: "Bir marta", pronunciation: "hanbeon" },
+                    { korean: "도시", uzbek: "Shahar", pronunciation: "dosi" },
+                    { korean: "한복", uzbek: "Koreya milliy libosi", pronunciation: "hanbok" },
+                    { korean: "티셔츠", uzbek: "Futbolka", pronunciation: "tisyeocheu" },
+                    { korean: "단순하다", uzbek: "Oddiy", pronunciation: "dansunhada" },
+                    { korean: "사탕", uzbek: "Konfet", pronunciation: "satang" },
+                    { korean: "목도리", uzbek: "Sharf", pronunciation: "mokdori" },
+                    { korean: "목걸이", uzbek: "Bo'yinga taqiladigan bezak", pronunciation: "mokgeori" },
+
+                    { korean: "귀걸이", uzbek: "Zirak", pronunciation: "gwigeori" },
+                    { korean: "기쁘다", uzbek: "Xursand bo'lmoq", pronunciation: "gippeuda" },
+                    { korean: "하다", uzbek: "Qilmoq, o'ramoq", pronunciation: "hada" },
+                    { korean: "가지다", uzbek: "Ega bo'lmoq", pronunciation: "gajida" },
+                    { korean: "모르겠어요", uzbek: "Bilmayman", pronunciation: "moreugesseoyo" },
+                    { korean: "축하", uzbek: "Tabriklash", pronunciation: "chukha" },
+                    { korean: "새", uzbek: "Yangi", pronunciation: "sae" },
+                    { korean: "놀라다", uzbek: "Hayron bo'lmoq", pronunciation: "nollada" },
+                    { korean: "먼저", uzbek: "Birinchi navbatda", pronunciation: "meonjeo" },
+                    { korean: "묻다", uzbek: "So'ramoq", pronunciation: "mutda" },
+
+                    { korean: "돈을 바꾸다", uzbek: "Pulni almashtirmoq", pronunciation: "doneul bakkuda" },
+                    { korean: "표를 예매하다", uzbek: "Biletni buyurtma qilmoq", pronunciation: "pyoreul yemaehada" },
+                    { korean: "여권을 만들다", uzbek: "Pasport tayyorlash", pronunciation: "yeokwoneul mandeulda" },
+                    { korean: "호텔을 예약하다", uzbek: "Mehmonxonani bron qilmoq", pronunciation: "hotereul yeyakhada" },
+                    { korean: "여행하다", uzbek: "Sayohat qilmoq", pronunciation: "yeohaenghada" },
+                    { korean: "출발하다", uzbek: "Jo'nab ketmoq", pronunciation: "chulbalhada" },
+                    { korean: "도착하다", uzbek: "Yetib bormoq", pronunciation: "dochakhada" },
+                    { korean: "경치가 아름답다", uzbek: "Manzarasi chiroyli", pronunciation: "gyeongchiga areumdapda" },
+                    { korean: "맛있는 음식이 많다", uzbek: "Mazali ovqatlari ko'p", pronunciation: "masinneun eumsigi manta" },
+                    { korean: "물건 값이 싸다", uzbek: "Narsalar narxi arzon", pronunciation: "mulgeon gapsi ssada" }
+                ],
+                exercises: [
+                    {
+                        question: "Nomlanish uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["라고 해요", "아요/어요", "었/았어요", "을/를"],
+                        correct: 0
+                    },
+                    {
+                        question: "Maqsad uchun qaysi konstruksiya ishlatiladi?",
+                        options: ["고", "기 위해서", "지만", "아서/어서"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 28,
+                telegramVideoUrl: "",
+                title: "Tanlov va harakat nomlari",
+                korean: "선택과 행위명사",
+                description: "Tanlov va harakat nomlarini o'rganish",
+                vocabulary: [
+                    { korean: "프로포즈", uzbek: "Uylanish taklifini berish", pronunciation: "peuropojeu" },
+                    { korean: "날", uzbek: "Kun", pronunciation: "nal" },
+                    { korean: "해운대", uzbek: "Sohil", pronunciation: "haeundae" },
+                    { korean: "떠나다", uzbek: "Tashlab ketmoq", pronunciation: "tteonada" },
+                    { korean: "즐겁다", uzbek: "Zavqli", pronunciation: "jeulgeopda" },
+                    { korean: "휴가", uzbek: "Ta'til", pronunciation: "hyuga" },
+                    { korean: "말", uzbek: "Gap, ot", pronunciation: "mal" },
+                    { korean: "곳", uzbek: "Joy", pronunciation: "got" },
+                    { korean: "신혼여행", uzbek: "Asal oyi", pronunciation: "sinhonyeohaeng" },
+                    { korean: "미술관", uzbek: "San'at galereyasi", pronunciation: "misulgwan" },
+
+                    { korean: "섬", uzbek: "Orol", pronunciation: "seom" },
+                    { korean: "올라가다", uzbek: "Ko'tarilmoq", pronunciation: "ollagada" },
+                    { korean: "질문", uzbek: "Savol", pronunciation: "jilmun" },
+                    { korean: "계획하다", uzbek: "Reja qilmoq", pronunciation: "gyehoakhada" },
+                    { korean: "식사하다", uzbek: "Ovqatlanmoq", pronunciation: "siksahada" },
+                    { korean: "연락하다", uzbek: "Qo'ng'iroq qilmoq", pronunciation: "yeollakhada" },
+                    { korean: "준비하다", uzbek: "Tayyorlanmoq", pronunciation: "junbihada" },
+                    { korean: "초대하다", uzbek: "Taklif qilmoq", pronunciation: "chodaehada" },
+                    { korean: "늦게", uzbek: "Kechroq", pronunciation: "neutge" },
+                    { korean: "많이", uzbek: "Ko'p", pronunciation: "mani" }
+                ],
+                exercises: [
+                    {
+                        question: "Harakat nomi uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["기", "고", "아요/어요", "을/를"],
+                        correct: 0
+                    },
+                    {
+                        question: "'O'qish' qanday aytiladi?",
+                        options: ["읽어요", "읽기", "읽었어요", "읽을 거예요"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 29,
+                telegramVideoUrl: "",
+                title: "Bilish-bilmaslik va inkor shakllari",
+                korean: "알고 모름과 부정형",
+                description: "Bilish-bilmaslik va inkor shakllarini o'rganish",
+                vocabulary: [
+                    { korean: "빨리", uzbek: "Tez", pronunciation: "ppalli" },
+                    { korean: "열심히", uzbek: "Yurakdan, astoydil", pronunciation: "yeolsimhi" },
+                    { korean: "일찍", uzbek: "Erta, vaqtida", pronunciation: "iljjik" },
+                    { korean: "잘", uzbek: "Yaxshi", pronunciation: "jal" },
+                    { korean: "조금", uzbek: "Bir oz", pronunciation: "jogeum" },
+                    { korean: "천천히", uzbek: "Sekin-sekin", pronunciation: "cheoncheonhi" },
+                    { korean: "음료수", uzbek: "Salqin ichimlik", pronunciation: "eumryosu" },
+                    { korean: "별일", uzbek: "Qiladigan ish", pronunciation: "byeoril" },
+                    { korean: "사 가다", uzbek: "Sotib olib bormoq", pronunciation: "sa gada" },
+                    { korean: "휴일", uzbek: "Dam olish kuni", pronunciation: "hyuil" },
+
+                    { korean: "팝콘", uzbek: "Popkorn", pronunciation: "papkon" },
+                    { korean: "춤을 추다", uzbek: "Raqs tushmoq", pronunciation: "chumeul chuda" },
+                    { korean: "들어오다", uzbek: "Kirib kelmoq", pronunciation: "deureooda" },
+                    { korean: "아니에요", uzbek: "Unday emas", pronunciation: "anieyo" },
+                    { korean: "곧", uzbek: "Tez orada", pronunciation: "got" },
+                    { korean: "상대방", uzbek: "Suhbatdosh", pronunciation: "sangdaebang" },
+                    { korean: "시간을 보내다", uzbek: "Vaqt o'tkazmoq", pronunciation: "siganeul bonaeda" },
+                    { korean: "참", uzbek: "Aytgancha", pronunciation: "cham" },
+                    { korean: "몰라요", uzbek: "Bilmayman", pronunciation: "mollayo" },
+                    { korean: "놀이", uzbek: "O'yin", pronunciation: "nori" },
+
+                    { korean: "세계", uzbek: "Dunyo", pronunciation: "segye" },
+                    { korean: "답장", uzbek: "Javob", pronunciation: "dapjang" },
+                    { korean: "세제", uzbek: "Yuvish vositasi", pronunciation: "seje" },
+                    { korean: "부자", uzbek: "Boy", pronunciation: "buja" },
+                    { korean: "학생 카드", uzbek: "O'quvchilik guvohnomasi", pronunciation: "haksaeng kadeu" },
+                    { korean: "성명", uzbek: "Ism familiya", pronunciation: "seongmyeong" },
+                    { korean: "생년월일", uzbek: "Tug'ilgan yil-oy-kun", pronunciation: "saengnyeonworil" },
+                    { korean: "연락처", uzbek: "Aloqa raqami", pronunciation: "yeonrakcheo" },
+                    { korean: "주소", uzbek: "Manzil", pronunciation: "juso" },
+                    { korean: "성별", uzbek: "Jins", pronunciation: "seongbyeol" }
+                ],
+                exercises: [
+                    {
+                        question: "'Bilmayman' qanday aytiladi?",
+                        options: ["알아요", "몰라요", "해요", "가요"],
+                        correct: 1
+                    },
+                    {
+                        question: "Hurmatli inkor uchun qaysi shakl ishlatiladi?",
+                        options: ["안 해요", "모르겠어요", "없어요", "지 않아요"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 30,
+                telegramVideoUrl: "",
+                title: "Sifatlovchi bog'lovchi konstruksiyalar",
+                korean: "형용사 연결구조",
+                description: "Sifatlovchi bog'lovchi konstruksiyalarni o'rganish",
+                vocabulary: [
+                    { korean: "직업", uzbek: "Kasb", pronunciation: "jigeop" },
+                    { korean: "종교", uzbek: "Din", pronunciation: "jonggyo" },
+                    { korean: "매일", uzbek: "Har kuni", pronunciation: "maeil" },
+                    { korean: "매주", uzbek: "Har hafta", pronunciation: "maeju" },
+                    { korean: "매년", uzbek: "Har yili", pronunciation: "maenyeon" },
+                    { korean: "항상", uzbek: "Doim", pronunciation: "hangsang" },
+                    { korean: "자주", uzbek: "Tez-tez", pronunciation: "jaju" },
+                    { korean: "가끔", uzbek: "Ba'zan", pronunciation: "gakkeum" },
+                    { korean: "뵙다", uzbek: "Ko'rishmoq", pronunciation: "boepda" },
+                    { korean: "그냥", uzbek: "Shunchaki", pronunciation: "geunyang" },
+
+                    { korean: "이유", uzbek: "Sabab", pronunciation: "iyu" },
+                    { korean: "국적", uzbek: "Millat", pronunciation: "gukjeok" },
+                    { korean: "나이/연세", uzbek: "Yosh", pronunciation: "nai/yeonse" },
+                    { korean: "이름/성함", uzbek: "Ism", pronunciation: "ireum/seongham" },
+                    { korean: "질문", uzbek: "Savol", pronunciation: "jilmun" },
+                    { korean: "평일", uzbek: "Ish kunlari", pronunciation: "pyeongil" },
+                    { korean: "사 오다", uzbek: "Sotib olib kelmoq", pronunciation: "sa oda" },
+                    { korean: "초대를 받다", uzbek: "Taklifni olmoq", pronunciation: "chodaereul batda" },
+                    { korean: "코미디 영화", uzbek: "Komediya kino", pronunciation: "komedi yeonghwa" },
+                    { korean: "소설 책", uzbek: "Roman kitob", pronunciation: "soseol chaek" },
+
+                    { korean: "시간이 나다", uzbek: "Vaqti bo'lmoq", pronunciation: "sigani nada" },
+                    { korean: "언어", uzbek: "Til", pronunciation: "eoneo" },
+                    { korean: "문화", uzbek: "Madaniyat", pronunciation: "munhwa" },
+                    { korean: "관심", uzbek: "Qiziqish", pronunciation: "gwansim" },
+                    { korean: "정도", uzbek: "Darajada", pronunciation: "jeongdo" },
+                    { korean: "유명하다", uzbek: "Mashxur bo'lmoq", pronunciation: "yumyeonghada" },
+                    { korean: "에 대해서", uzbek: "Haqida", pronunciation: "e daehaeseo" },
+                    { korean: "글자", uzbek: "Harf", pronunciation: "geulja" },
+                    { korean: "제일/가장", uzbek: "Eng", pronunciation: "jeil/gajang" },
+                    { korean: "친하다", uzbek: "Yaqin, samimiy bo'lmoq", pronunciation: "chinhada" }
+                ],
+                exercises: [
+                    {
+                        question: "Sifatlarni bog'lash uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["고", "에", "을/를", "의"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Lekin' ma'nosida qaysi qo'shimcha ishlatiladi?",
+                        options: ["고", "지만", "아서/어서", "니까"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 31,
+                telegramVideoUrl: "",
+                title: "O'xshatish grammatikasi",
+                korean: "비유문법",
+                description: "O'xshatish va taqqoslashni ifodalash",
+                vocabulary: [
+                    { korean: "빼다", uzbek: "Sug'urmoq", pronunciation: "ppaeda" },
+                    { korean: "형제들", uzbek: "Aka ukalr", pronunciation: "hyeongjedeul" },
+                    { korean: "비슷하다", uzbek: "O'xshash", pronunciation: "biseuthada" },
+                    { korean: "과제", uzbek: "Mavzu", pronunciation: "gwaje" },
+                    { korean: "문화 산책", uzbek: "Madaniyatga sayohat", pronunciation: "munhwa sanchaek" },
+                    { korean: "발음", uzbek: "Tovush, talaffuz", pronunciation: "bareum" },
+                    { korean: "규칙", uzbek: "Qoida", pronunciation: "gyuchik" },
+                    { korean: "연습", uzbek: "Mashq", pronunciation: "yeonseup" },
+                    { korean: "준비", uzbek: "Tayyorgarlik", pronunciation: "junbi" },
+                    { korean: "취미", uzbek: "Hobbi", pronunciation: "chwimi" },
+                    { korean: "사진을 찍다", uzbek: "Rasmga tushirmoq", pronunciation: "sajineul jjikda" },
+
+                    { korean: "음악을 듣다", uzbek: "Musiqa eshitmoq", pronunciation: "eumageul deutda" },
+                    { korean: "그림을 그리다", uzbek: "Rasm chizmoq", pronunciation: "geurimeul geurida" },
+                    { korean: "인형을 모으다", uzbek: "Qo'g'irchoq yig'moq", pronunciation: "inhyeongeul moeuda" },
+                    { korean: "영화 감상", uzbek: "Kinodan zavqlanish", pronunciation: "yeonghwa gamsang" },
+                    { korean: "음악 감상", uzbek: "Musiqadan zavqlanish", pronunciation: "eumak gamsang" },
+                    { korean: "등산", uzbek: "Tog'ga chiqish", pronunciation: "deungsan" },
+                    { korean: "독서", uzbek: "Kitob o'qish", pronunciation: "dokseo" },
+                    { korean: "요리", uzbek: "Pishirmoq", pronunciation: "yori" },
+                    { korean: "낚시", uzbek: "Baliq ovlash", pronunciation: "naksi" },
+                    { korean: "운동", uzbek: "Sport", pronunciation: "undong" },
+
+                    { korean: "아주", uzbek: "Juda", pronunciation: "aju" },
+                    { korean: "별로", uzbek: "Unchalik", pronunciation: "byeollo" },
+                    { korean: "전혀", uzbek: "Umuman", pronunciation: "jeonhyeo" },
+                    { korean: "외국어", uzbek: "Chet tili", pronunciation: "oegugeo" },
+                    { korean: "동호회", uzbek: "To'garak, klub", pronunciation: "donghohoe" },
+                    { korean: "가입하다", uzbek: "A'zo bo'lmoq", pronunciation: "gaiphada" },
+                    { korean: "모으다", uzbek: "Yig'moq", pronunciation: "moeuda" },
+                    { korean: "연습실", uzbek: "Mashq xonasi", pronunciation: "yeonseubsil" },
+                    { korean: "회비", uzbek: "A'zolik puli", pronunciation: "hoebi" },
+                    { korean: "모이다", uzbek: "Yig'ilmoq", pronunciation: "moida" }
+                ],
+                exercises: [
+                    {
+                        question: "'Kabi' ma'nosida qaysi so'z ishlatiladi?",
+                        options: ["같아요", "처럼", "만큼", "보다"],
+                        correct: 1
+                    },
+                    {
+                        question: "'Dan ko'ra' ma'nosida qaysi so'z ishlatiladi?",
+                        options: ["같아요", "처럼", "만큼", "보다"],
+                        correct: 3
+                    }
+                ]
+            },
+            {
+                id: 32,
+                telegramVideoUrl: "",
+                title: "Taxmin va istak ifodalari",
+                korean: "추측과 소망표현",
+                description: "Taxmin va istak ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "참", uzbek: "Juda, rostdan, ha aytgancha", pronunciation: "cham" },
+                    { korean: "여러 가지", uzbek: "Harxil", pronunciation: "yeoreo gaji" },
+                    { korean: "콘서트", uzbek: "Konsert", pronunciation: "konseoteu" },
+                    { korean: "음악회", uzbek: "Musiqiy festival", pronunciation: "eumakhoe" },
+                    { korean: "연극", uzbek: "Teatr", pronunciation: "yeongeuk" },
+                    { korean: "뮤지컬", uzbek: "Musiqiy festival", pronunciation: "myujikeol" },
+                    { korean: "전시회", uzbek: "Ko'rgazma", pronunciation: "jeonsihoe" },
+                    { korean: "축제", uzbek: "Festival", pronunciation: "chukje" },
+                    { korean: "아르바이트", uzbek: "Kunlik ish", pronunciation: "areubaiteu" },
+                    { korean: "박물관", uzbek: "Muzey", pronunciation: "bangmulgwan" },
+
+                    { korean: "공연장", uzbek: "San'at saroyi", pronunciation: "gongyeonjang" },
+                    { korean: "놀이공원", uzbek: "Park", pronunciation: "norigongwon" },
+                    { korean: "시간", uzbek: "Vaqt", pronunciation: "sigan" },
+                    { korean: "달", uzbek: "Oy", pronunciation: "dal" },
+                    { korean: "노래방", uzbek: "Karaoke", pronunciation: "noraebang" },
+                    { korean: "찜질방", uzbek: "Sauna", pronunciation: "jjimjilbang" },
+                    { korean: "하루", uzbek: "Kunbo'yi", pronunciation: "haru" },
+                    { korean: "갔다오다", uzbek: "Borib kelmoq", pronunciation: "gatdaoda" },
+                    { korean: "시막", uzbek: "Cho'l saxro", pronunciation: "simak" },
+                    { korean: "다시", uzbek: "Qayta, yana", pronunciation: "dasi" },
+
+                    { korean: "빌려 주다", uzbek: "Qarzga bermoq", pronunciation: "billyeo juda" },
+                    { korean: "국제", uzbek: "Xalqaro", pronunciation: "gukje" },
+                    { korean: "존경하다", uzbek: "Qadrlamoq", pronunciation: "jongyeonghada" },
+                    { korean: "왕", uzbek: "Qirol", pronunciation: "wang" },
+                    { korean: "여왕", uzbek: "Qirolicha", pronunciation: "yeowang" },
+                    { korean: "닭", uzbek: "Tovuq", pronunciation: "dak" },
+                    { korean: "자리", uzbek: "O'rindiq, joy", pronunciation: "jari" },
+                    { korean: "꼭", uzbek: "Albatta", pronunciation: "kkok" },
+                    { korean: "출장", uzbek: "Komandirovka", pronunciation: "chuljang" },
+                    { korean: "중요하다", uzbek: "Muhim", pronunciation: "jungyohada" },
+                    { korean: "글쎄요", uzbek: "Bilmasam", pronunciation: "geulsseyo" },
+                    { korean: "특히", uzbek: "Ayniqsa", pronunciation: "teukhi" }
+                ],
+                exercises: [
+                    {
+                        question: "Taxmin uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["겠", "아요/어요", "을/를", "고"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Ehtimol' ma'nosida qaysi so'z ishlatiladi?",
+                        options: ["분명히", "아마", "확실히", "틀림없이"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 33,
+                telegramVideoUrl: "",
+                title: "Sabab-oqibat bog'lovchilari",
+                korean: "원인결과 접속사",
+                description: "Sabab va oqibat bog'lovchilarini o'rganish",
+                vocabulary: [
+                    { korean: "기억이 남다", uzbek: "Xotirada qolmoq", pronunciation: "gieogi namda" },
+                    { korean: "여러 나라", uzbek: "Turli xil davlat", pronunciation: "yeoreo nara" },
+                    { korean: "감독", uzbek: "Boshqaruvchi, nazoratchi", pronunciation: "gamdok" },
+                    { korean: "배우", uzbek: "Aktyor", pronunciation: "baeu" },
+                    { korean: "낙타", uzbek: "Tuya", pronunciation: "nakta" },
+                    { korean: "밀하기 대회", uzbek: "Gapirish musobaqasi", pronunciation: "milhagi daehoe" },
+                    { korean: "대회에 나가다", uzbek: "Musobaqaga chiqmoq", pronunciation: "daehoee nagada" },
+                    { korean: "상을 받다", uzbek: "Mukofot olmoq", pronunciation: "sangeul batda" },
+                    { korean: "경험", uzbek: "Tajriba", pronunciation: "gyeongheom" },
+
+                    { korean: "밝다", uzbek: "Yorug'", pronunciation: "bakda" },
+                    { korean: "어둡다", uzbek: "Qorong'u", pronunciation: "eodupda" },
+                    { korean: "길다", uzbek: "Uzun", pronunciation: "gilda" },
+                    { korean: "짧다", uzbek: "Kalta", pronunciation: "jjalda" },
+                    { korean: "옷값", uzbek: "Kiyim narxi", pronunciation: "otgap" },
+                    { korean: "맛", uzbek: "Maza", pronunciation: "mat" },
+                    { korean: "내용", uzbek: "Mazmun", pronunciation: "naeyong" },
+                    { korean: "유행하다", uzbek: "Urf bo'lmoq", pronunciation: "yuhaenghada" },
+                    { korean: "훨씬", uzbek: "Yanada", pronunciation: "hwolssin" },
+                    { korean: "산", uzbek: "Tog'", pronunciation: "san" },
+
+                    { korean: "바다", uzbek: "Dengiz", pronunciation: "bada" },
+                    { korean: "여름", uzbek: "Yoz", pronunciation: "yeoreum" },
+                    { korean: "겨울", uzbek: "Qish", pronunciation: "gyeoul" },
+                    { korean: "가을", uzbek: "Kuz", pronunciation: "gaeul" },
+                    { korean: "봄", uzbek: "Bahor", pronunciation: "bom" },
+                    { korean: "시골", uzbek: "Qishloq", pronunciation: "sigol" },
+                    { korean: "건강하다", uzbek: "Sog'lom bo'lmoq", pronunciation: "geonganghada" },
+                    { korean: "굽이 높다", uzbek: "Poshnasi baland", pronunciation: "gupi nopda" },
+                    { korean: "필요하다", uzbek: "Kerak", pronunciation: "piryohada" },
+                    { korean: "절약하다", uzbek: "Tejamoq", pronunciation: "jeoryakhada" }
+                ],
+                exercises: [
+                    {
+                        question: "'Chunki' ma'nosida qaysi bog'lovchi ishlatiladi?",
+                        options: ["니까", "그래서", "그런데", "하지만"],
+                        correct: 0
+                    },
+                    {
+                        question: "Sabab bildirish uchun qaysi so'z ishlatiladi?",
+                        options: ["결과", "때문에", "목적", "방법"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 34,
+                telegramVideoUrl: "",
+                title: "Ruxsat va taqiq konstruksiyalari",
+                korean: "허락과 금지구조",
+                description: "Ruxsat va taqiq konstruksiyalarini o'rganish",
+                vocabulary: [
+                    { korean: "직접", uzbek: "Bevosita", pronunciation: "jikjeop" },
+                    { korean: "주문하다", uzbek: "Buyurtma qilmoq", pronunciation: "jumunhada" },
+                    { korean: "면접", uzbek: "Ishga kirish uchun", pronunciation: "myeonjeop" },
+                    { korean: "물어 보다", uzbek: "So'rab ko'rmoq", pronunciation: "mureo boda" },
+                    { korean: "동네", uzbek: "Mahalla", pronunciation: "dongne" },
+                    { korean: "넣다", uzbek: "Solmoq, qo'ymoq", pronunciation: "neotda" },
+                    { korean: "가격", uzbek: "Narx", pronunciation: "gagyeok" },
+                    { korean: "색깔", uzbek: "Rang", pronunciation: "saekkal" },
+                    { korean: "길이", uzbek: "Uzunligi", pronunciation: "giri" },
+                    { korean: "기간", uzbek: "Muddat", pronunciation: "gigan" },
+
+                    { korean: "교통편", uzbek: "Transport", pronunciation: "gyotongpyeon" },
+                    { korean: "숙소", uzbek: "Qolish uchun joy", pronunciation: "sukso" },
+                    { korean: "요금", uzbek: "To'lov", pronunciation: "yogeum" },
+                    { korean: "일정", uzbek: "Jadval, reja", pronunciation: "iljeong" },
+                    { korean: "박", uzbek: "Kecha", pronunciation: "bak" },
+                    { korean: "항공료", uzbek: "Samalyot to'lovi", pronunciation: "hanggongryo" },
+                    { korean: "입장료", uzbek: "Kirish to'lovi", pronunciation: "ipjangryo" },
+                    { korean: "왕복", uzbek: "Borib kelish", pronunciation: "wangbok" },
+                    { korean: "날짜 선택", uzbek: "Sanani tanlash", pronunciation: "nalja seontak" },
+                    { korean: "출국 날짜", uzbek: "Chiqib ketish sanasi", pronunciation: "chukguk nalja" },
+
+                    { korean: "달력", uzbek: "Kalendar", pronunciation: "dallyeok" },
+                    { korean: "성인", uzbek: "Yoshi katta", pronunciation: "seongin" },
+                    { korean: "소아", uzbek: "Yosh bola", pronunciation: "soa" },
+                    { korean: "유아", uzbek: "Chaqaloq", pronunciation: "yua" },
+                    { korean: "좌석", uzbek: "O'rindiq", pronunciation: "jwaseok" },
+                    { korean: "일반석", uzbek: "Umumiy o'rindiq", pronunciation: "ilbanseok" },
+                    { korean: "아마", uzbek: "Ehtimol", pronunciation: "ama" },
+                    { korean: "돈을 모으다", uzbek: "Pul yig'moq", pronunciation: "doneul moeuda" },
+                    { korean: "느끼다", uzbek: "His qilmoq", pronunciation: "neukkida" },
+                    { korean: "알아보다", uzbek: "Bilib ko'rmoq", pronunciation: "araboda" }
+                ],
+                exercises: [
+                    {
+                        question: "Ruxsat uchun qaysi ifoda ishlatiladi?",
+                        options: ["도 돼요", "면 안 돼요", "지 마세요", "야 해요"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Bo'lmaydi' qanday aytiladi?",
+                        options: ["도 돼요", "면 안 돼요", "괜찮아요", "좋아요"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 35,
+                telegramVideoUrl: "",
+                title: "Bilish-bilmaslik aniqlik shakllari",
+                korean: "인식확실성 형태",
+                description: "Bilish-bilmaslik aniqlik shakllarini o'rganish",
+                vocabulary: [
+                    { korean: "공연", uzbek: "Tomosha", pronunciation: "gongyeon" },
+                    { korean: "거리", uzbek: "Ko'cha, masofa", pronunciation: "geori" },
+                    { korean: "며칠", uzbek: "Bir necha kun", pronunciation: "myeochil" },
+                    { korean: "바라다", uzbek: "Xoxlamoq, istamoq", pronunciation: "barada" },
+                    { korean: "자세하다", uzbek: "Batafsil", pronunciation: "jasehada" },
+                    { korean: "방법", uzbek: "Usul", pronunciation: "bangbeop" },
+                    { korean: "마치다", uzbek: "Tugatmoq", pronunciation: "machida" },
+                    { korean: "당일", uzbek: "Kunlik", pronunciation: "dangil" },
+                    { korean: "추천하다", uzbek: "Tavsiya qilmoq", pronunciation: "chucheonhada" },
+                    { korean: "빈방", uzbek: "Bo'sh xona", pronunciation: "binbang" },
+
+                    { korean: "가이드", uzbek: "Tarjimon, tanishtiruvchi gid", pronunciation: "gaideu" },
+                    { korean: "사이", uzbek: "Orasi", pronunciation: "sai" },
+                    { korean: "자연", uzbek: "Tabiat", pronunciation: "jayeon" },
+                    { korean: "등", uzbek: "Va boshqa", pronunciation: "deung" },
+                    { korean: "다양하다", uzbek: "Harxil", pronunciation: "dayangaha" },
+                    { korean: "가지고 가다", uzbek: "O'zi bilan olib ketmoq", pronunciation: "gajigo gada" },
+                    { korean: "펜션", uzbek: "Dacha", pronunciation: "pensyeon" },
+                    { korean: "이용하다", uzbek: "Foydalanmoq", pronunciation: "iyonghada" },
+                    { korean: "전통적", uzbek: "Milliylik", pronunciation: "jeontongjek" },
+                    { korean: "분위기", uzbek: "Muhit", pronunciation: "bunwigi" },
+
+                    { korean: "대통령", uzbek: "Prezident", pronunciation: "daetongryeong" },
+                    { korean: "종류", uzbek: "Tur", pronunciation: "jongryu" },
+                    { korean: "등록금", uzbek: "Royxatga olish puli", pronunciation: "deungrokgeum" },
+                    { korean: "주소를 쓰다", uzbek: "Addressni yozmoq", pronunciation: "jusoreul sseuda" },
+                    { korean: "봉투에 넣다", uzbek: "Konvertga solmoq", pronunciation: "bongtue neotda" },
+                    { korean: "소포를 포장하다", uzbek: "Posilkani o'ramoq", pronunciation: "soporeul pojanghada" },
+                    { korean: "돈을 찾다", uzbek: "Pul olmoq", pronunciation: "doneul chatda" },
+                    { korean: "돈을 바꾸다", uzbek: "Pul almashtirmoq", pronunciation: "doneul bakkuda" },
+                    { korean: "돈을 보내다", uzbek: "Pul jo'natmoq", pronunciation: "doneul bonaeda" },
+                    { korean: "신분증", uzbek: "Guvohnoma", pronunciation: "sinbunjeung" }
+                ],
+                exercises: [
+                    {
+                        question: "'Ekanini bilaman' qanday aytiladi?",
+                        options: ["는지 알아요", "는지 몰라요", "알아요", "몰라요"],
+                        correct: 0
+                    },
+                    {
+                        question: "Noaniqlik uchun qaysi ifoda ishlatiladi?",
+                        options: ["확실해요", "을/를지 모르겠어요", "알아요", "맞아요"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 36,
+                telegramVideoUrl: "",
+                title: "Maqsad va ketma-ketlik grammatikasi",
+                korean: "목적과 순서문법",
+                description: "Maqsad va ketma-ketlik grammatikasini o'rganish",
+                vocabulary: [
+                    { korean: "도장", uzbek: "Pechat", pronunciation: "dojang" },
+                    { korean: "통장", uzbek: "Bank kitobchasi", pronunciation: "tongjang" },
+                    { korean: "신용 카드", uzbek: "Kredit karta", pronunciation: "sinyong kadeu" },
+                    { korean: "현금", uzbek: "Naqd", pronunciation: "hyeon-geum" },
+                    { korean: "퇴근 시간", uzbek: "Ishdan chiqish payti", pronunciation: "toegeun sigan" },
+                    { korean: "길이 막히다", uzbek: "Yo'l tirband", pronunciation: "giri makhida" },
+                    { korean: "돈이 들다", uzbek: "Pul sarflamoq", pronunciation: "doni deulda" },
+                    { korean: "저울", uzbek: "Tarozi", pronunciation: "jeoul" },
+                    { korean: "올리다", uzbek: "Qo'ymoq", pronunciation: "ollida" },
+                    { korean: "상자", uzbek: "Quti, yashik", pronunciation: "sangja" },
+
+                    { korean: "맞다", uzbek: "To'g'ri, mos tushmoq", pronunciation: "matda" },
+                    { korean: "오르다", uzbek: "Yuqoriga ko'tarilmoq", pronunciation: "oreuda" },
+                    { korean: "빠르다", uzbek: "Tez", pronunciation: "ppareuda" },
+                    { korean: "모르다", uzbek: "Bilmaslik", pronunciation: "moreuda" },
+                    { korean: "다르다", uzbek: "Boshqacha", pronunciation: "dareuda" },
+                    { korean: "서두르다", uzbek: "Shoshilinch", pronunciation: "seodureu" },
+                    { korean: "벌써", uzbek: "Allaqachon", pronunciation: "beolsseo" },
+                    { korean: "차비", uzbek: "Yo'lkira", pronunciation: "chabi" },
+                    { korean: "잃어버리다", uzbek: "Yo'qotmoq", pronunciation: "ileobeorin" },
+                    { korean: "가져오다", uzbek: "O'zi bilan olib kelmoq", pronunciation: "gajyeooda" },
+
+                    { korean: "전부", uzbek: "Hammasi", pronunciation: "jeonbu" },
+                    { korean: "내리다", uzbek: "Tushmoq", pronunciation: "naerida" },
+                    { korean: "택배 기사", uzbek: "Tekpe xodimi", pronunciation: "taekbae gisa" },
+                    { korean: "방문하다", uzbek: "Tashrif buyurmoq", pronunciation: "bangmunhada" },
+                    { korean: "수량", uzbek: "Miqdori", pronunciation: "suryang" },
+                    { korean: "신청하다", uzbek: "Ariza qilmoq", pronunciation: "sincheonghada" },
+                    { korean: "뽑다", uzbek: "Ishga olmoq", pronunciation: "ppopda" },
+                    { korean: "바로", uzbek: "To'g'ridan to'g'ri", pronunciation: "baro" },
+                    { korean: "간판", uzbek: "Doska", pronunciation: "ganpan" },
+                    { korean: "새", uzbek: "Qush, yangi", pronunciation: "sae" }
+                ],
+                exercises: [
+                    {
+                        question: "Maqsad uchun qaysi qo'shimcha ishlatiladi?",
+                        options: ["기 위해서", "고 나서", "기 전에", "은/ㄴ 후에"],
+                        correct: 0
+                    },
+                    {
+                        question: "'Dan oldin' ma'nosida qaysi ifoda ishlatiladi?",
+                        options: ["기 위해서", "고 나서", "기 전에", "은/ㄴ 후에"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 37,
+                telegramVideoUrl: "",
+                title: "Tugallangan harakat va vaqt ifodalari",
+                korean: "완료행위와 시간표현",
+                description: "Tugallangan harakat va vaqt ifodalashni o'rganish",
+                vocabulary: [
+                    { korean: "소식", uzbek: "Xabar", pronunciation: "sosik" },
+                    { korean: "전하다", uzbek: "Yoymoq, yetkazmoq", pronunciation: "jeonhada" },
+                    { korean: "사거리", uzbek: "To'rt kocha kesishgan yo'l", pronunciation: "sageori" },
+                    { korean: "지하도", uzbek: "Yer osti yo'li", pronunciation: "jihado" },
+                    { korean: "육교", uzbek: "Ko'prik", pronunciation: "yukgyo" },
+                    { korean: "회단보도", uzbek: "Piyodalar o'tish yo'li", pronunciation: "hoedanbodo" },
+                    { korean: "쭉 가다", uzbek: "To'g'riga bormoq", pronunciation: "jjuk gada" },
+                    { korean: "나가다", uzbek: "Chiqmoq", pronunciation: "nagada" },
+                    { korean: "세우다", uzbek: "Mashina qo'ymoq", pronunciation: "seuda" },
+                    { korean: "직진하다", uzbek: "To'g'riga yurmoq", pronunciation: "jikjinhada" },
+                    { korean: "학생회관", uzbek: "O'quvchilar zali", pronunciation: "haksaenghoegwan" },
+                    { korean: "근처", uzbek: "Yaqin atrof", pronunciation: "geuncheo" },
+                    { korean: "출구", uzbek: "Chiqish", pronunciation: "chulgu" },
+                    { korean: "사귀다", uzbek: "Dostlashmoq", pronunciation: "sagwida" },
+                    { korean: "한참", uzbek: "Uzoq vaqt", pronunciation: "hancham" },
+                    { korean: "나오다", uzbek: "Chiqib kelmoq", pronunciation: "naoda" },
+                    { korean: "경찰서", uzbek: "Militsiyaxona", pronunciation: "gyeongchalseo" },
+                    { korean: "잊다", uzbek: "Unutmoq", pronunciation: "itda" },
+                    { korean: "알려 주다", uzbek: "Bildirib bermoq", pronunciation: "allyeo juda" },
+                    { korean: "지나다", uzbek: "Dan o'tmoq", pronunciation: "jinada" },
+                    { korean: "미터", uzbek: "Metr", pronunciation: "miteo" },
+                    { korean: "걸어오다", uzbek: "Piyoda kelmoq", pronunciation: "georeooda" },
+                    { korean: "올라오다", uzbek: "Ko'tarilib kelmoq", pronunciation: "ollaoda" },
+                    { korean: "잡채", uzbek: "Jurnal", pronunciation: "japchae" },
+                    { korean: "보건소", uzbek: "Sog'liq saqlash markazi", pronunciation: "bogeonso" },
+                    { korean: "광장", uzbek: "Maydon", pronunciation: "gwangjang" },
+                    { korean: "기분이 좋다", uzbek: "Kayfiyati yaxshi", pronunciation: "gibuni jota" },
+                    { korean: "기분이 나쁘다", uzbek: "Kayfiyati yomon", pronunciation: "gibuni nappeuda" },
+                    { korean: "기쁘다", uzbek: "Xursand", pronunciation: "gippeuda" },
+                    { korean: "슬프다", uzbek: "G'amgin", pronunciation: "seulpeuda" }
+                ],
+                exercises: [
+
+                    {
+                        type: 'fill_blank',
+                        question: "친구가 제 책을 잃어___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "돈을 지갑에 안 넣어서 다 써___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "실수로 중요한 파일을 지워___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "너무 화가 나서 울어___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "숙제를 안 하고 그냥 자___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "케이크를 혼자서 다 먹어___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "핸드폰을 떨어뜨려서 깨뜨려___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "시험 시간에 졸다가 문제를 못 풀어___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "편지를 쓰다가 찢어___.",
+                        correctAnswer: "버렸어요"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "교통카드를 잃어___.",
+                        correctAnswer: "버렸어요"
+                    },
+
+                    // (으)ㄹ 때 - Mashqlar (bo'sh joy to'ldirish, variant yo'q)
+                    {
+                        type: 'fill_blank',
+                        question: "밥을 먹___ 텔레비전을 봐요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "한국에 갔___ 사진을 많이 찍었어요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "친구를 만났___ 커피를 마셨어요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "시험을 보___ 긴장이 돼요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "어렸___ 자주 병원에 갔어요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "학교에 갈___ 우산을 가져가요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "졸릴___ 커피를 마셔요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "기분이 안 좋___ 음악을 들어요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "운동하___ 다리를 다쳤어요.",
+                        correctAnswer: "을 때"
+                    },
+                    {
+                        type: 'fill_blank',
+                        question: "컴퓨터를 하___ 눈이 아파요.",
+                        correctAnswer: "을 때"
+                    },
+
+                    // 아/어 버리다 - Test (variantlar bilan)
+                    {
+                        question: "실수로 전화를 바닥에 떨어뜨려서 ____.",
+                        options: ["봐요", "버렸어요", "갔어요", "했어요"],
+                        correct: 1
+                    },
+                    {
+                        question: "너무 배가 고파서 라면을 다 ____.",
+                        options: ["먹어버렸어요", "읽었어요", "가르쳤어요", "봤어요"],
+                        correct: 0
+                    },
+                    {
+                        question: "화가 나서 친구에게 말도 안 하고 집에 ____.",
+                        options: ["공부했어요", "가버렸어요", "사요", "봤어요"],
+                        correct: 1
+                    },
+                    {
+                        question: "돈을 어딘가에 ____.",
+                        options: ["줘요", "놔버렸어요", "던졌어요", "봤어요"],
+                        correct: 1
+                    },
+                    {
+                        question: "사진을 잘못 눌러서 다 ____.",
+                        options: ["봤어요", "찍어버렸어요", "만들었어요", "했어요"],
+                        correct: 1
+                    },
+
+                    // (으)ㄹ 때 - Test (variantlar bilan)
+                    {
+                        question: "날씨가 추울 ___ 옷을 따뜻하게 입어요.",
+                        options: ["수", "때", "지", "거"],
+                        correct: 1
+                    },
+                    {
+                        question: "피곤할 ___ 커피를 마셔요.",
+                        options: ["때", "걸", "사람", "것"],
+                        correct: 0
+                    },
+                    {
+                        question: "한국에 갔을 ___ 김치를 먹었어요.",
+                        options: ["말", "때", "곳", "것"],
+                        correct: 1
+                    },
+                    {
+                        question: "친구를 만날 ___ 꼭 인사해요.",
+                        options: ["것", "때", "나중", "후"],
+                        correct: 1
+                    },
+                    {
+                        question: "어렸을 ___ 무엇을 좋아했어요?",
+                        options: ["때", "후에", "보고", "것"],
+                        correct: 0
+                    }
+
+                ]
+            }
+        ];
+
+        // DOM elements
+        const lessonsGrid = document.getElementById('lessonsGrid');
+        const lessonModal = document.getElementById('lessonModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModal = document.getElementById('closeModal');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const videoTab = document.getElementById('videoTab');
+        const vocabularyTab = document.getElementById('vocabularyTab');
+        const exercisesTab = document.getElementById('exercisesTab');
+        const vocabularyList = document.getElementById('vocabularyList');
+        const exerciseContainer = document.getElementById('exerciseContainer');
+        const lessonDescription = document.getElementById('lessonDescription');
+
+        // Initialize lessons
+        function initializeLessons() {
+            lessons.forEach(lesson => {
+                const lessonCard = createLessonCard(lesson);
+                lessonsGrid.appendChild(lessonCard);
+            });
+        }
+
+        // Create lesson card
+        function createLessonCard(lesson) {
+            const card = document.createElement('div');
+            card.className = 'lesson-card bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-all duration-300';
+            card.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">${lesson.title}</h3>
+                        <p class="korean-text text-blue-600 mb-2">${lesson.korean}</p>
+                        <p class="text-gray-600 text-sm">${lesson.description}</p>
+                    </div>
+                    <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium ml-4">
+                        ${lesson.id}-dars
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <div class="flex items-center space-x-4">
+                        <span><i class="fas fa-play-circle mr-1"></i>Video</span>
+                        <span><i class="fas fa-book mr-1"></i>${lesson.vocabulary.length} so'z</span>
+                        <span><i class="fas fa-pencil-alt mr-1"></i>${lesson.exercises.length} mashq</span>
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', () => openLessonModal(lesson));
+            return card;
+        }
+
+        // Open lesson modal
+        function openLessonModal(lesson) {
+            modalTitle.textContent = lesson.title;
+            lessonDescription.textContent = lesson.description;
+
+            // Video container yangilash
+            const videoContainer = document.querySelector('.video-container');
+            videoContainer.innerHTML = `
+        <div class="video-placeholder cursor-pointer" onclick="openTelegramVideo('${lesson.telegramVideoUrl}')">
+            <i class="fas fa-play"></i>
+        </div>
+    `;
+
+            // Show vocabulary
+            showVocabulary(lesson.vocabulary);
+
+            // Show exercises
+            showExercises(lesson.exercises);
+
+            // Show modal
+            lessonModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Show video tab by default
+            showTab('video');
+        }
+
+        // Telegram videoga o'tish funksiyasi
+        function openTelegramVideo(url) {
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert('Video hozircha mavjud emas');
+            }
+        }
+
+        // Close modal
+        function closeModalFunc() {
+            lessonModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Show vocabulary
+        function showVocabulary(vocabulary) {
+            vocabularyList.innerHTML = '';
+            vocabulary.forEach(item => {
+                const vocabCard = document.createElement('div');
+                vocabCard.className = 'bg-gray-50 rounded-lg p-4 border border-gray-200';
+                vocabCard.innerHTML = `
+                    <div class="korean-text text-xl font-semibold text-blue-600 mb-2">${item.korean}</div>
+                    <div class="text-gray-700 mb-1">${item.uzbek}</div>
+                    <div class="text-gray-500 text-sm italic">[${item.pronunciation}]</div>
+                `;
+                vocabularyList.appendChild(vocabCard);
+            });
+        }
+        function checkFillBlank(button) {
+            const input = button.previousElementSibling;
+            const resultDiv = button.nextElementSibling;
+            const userAnswer = input.value.trim();
+            const correctAnswer = input.dataset.correct;
+
+            if (userAnswer === correctAnswer) {
+                resultDiv.innerHTML = '<span class="text-green-600 font-semibold">✅ To\'g\'ri!</span>';
+                resultDiv.classList.remove('hidden');
+                input.classList.remove('border-red-500');
+                input.classList.add('border-green-500');
+            } else {
+                resultDiv.innerHTML = `
+            <span class="text-red-600 font-semibold">❌ Noto'g'ri!</span><br>
+            <span class="text-gray-600">To'g'ri javob: <strong>${correctAnswer}</strong></span>
+        `;
+                resultDiv.classList.remove('hidden');
+                input.classList.remove('border-green-500');
+                input.classList.add('border-red-500');
+            }
+        }
+
+        // Show exercises
+        function showExercises(exercises) {
+            exerciseContainer.innerHTML = '';
+            exercises.forEach((exercise, index) => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200';
+
+                // Agar exercise da type yo'q bo'lsa, multiple_choice deb hisoblaymiz
+                const exerciseType = exercise.type || 'multiple_choice';
+
+                if (exerciseType === 'fill_blank') {
+                    // Bo'sh joy to'ldirish mashqi - faqat input va tekshirish
+                    exerciseDiv.innerHTML = `
+        <h4 class="text-lg font-semibold mb-4">Mashq ${index + 1}</h4>
+        <p class="text-gray-700 mb-4">${exercise.question}</p>
+        <input type="text" 
+               class="w-full p-3 border border-gray-300 rounded-lg mb-3" 
+               placeholder="Javobni kiriting..."
+               data-correct="${exercise.correctAnswer}">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors" 
+                onclick="checkFillBlank(this)">
+            Tekshirish
+        </button>
+        <div class="result-message mt-4 hidden"></div>
+    `;
+                } else if (exerciseType === 'sentence_building') {
+                    // Gap tuzish mashqi - faqat ko'rsatish
+                    exerciseDiv.innerHTML = `
+        <h4 class="text-lg font-semibold mb-4">Mashq ${index + 1}</h4>
+        <p class="text-gray-700 mb-4">${exercise.instruction || 'Berilgan so\'zlar yordamida gap tuzing:'}</p>
+        <div class="words-container mb-4">
+            ${exercise.words ? exercise.words.map(word => `
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full mr-2 mb-2 inline-block">
+                    ${word}
+                </span>
+            `).join('') : ''}
+        </div>
+        <div class="bg-gray-100 p-3 rounded-lg">
+            <p class="text-sm text-gray-600">${exercise.correctAnswer}</p>
+        </div>
+    `;
+                } else {
+                    // Sizning eski kodingiz (multiple choice)
+                    exerciseDiv.innerHTML = `
+                <h4 class="text-lg font-semibold mb-4">Mashq ${index + 1}</h4>
+                <p class="text-gray-700 mb-4">${exercise.question}</p>
+                <div class="space-y-2" data-exercise="${index}">
+                    ${exercise.options.map((option, optIndex) => `
+                        <button class="exercise-option w-full text-left p-3 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors" 
+                                data-option="${optIndex}" data-correct="${exercise.correct}">
+                            ${String.fromCharCode(65 + optIndex)}. ${option}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="result-message mt-4 hidden"></div>
+            `;
+                }
+
+                exerciseContainer.appendChild(exerciseDiv);
+            });
+
+            // Sizning eski event listener-ingiz
+            document.querySelectorAll('.exercise-option').forEach(option => {
+                option.addEventListener('click', handleExerciseClick);
+            });
+        }
+
+        // Gap tuzish tekshirish funksiyasini qo'shamiz
+        function checkSentence(button) {
+            const input = button.previousElementSibling;
+            const resultDiv = button.nextElementSibling;
+            const userAnswer = input.value.trim();
+            const correctAnswer = input.dataset.correct;
+
+            if (userAnswer === correctAnswer) {
+                resultDiv.innerHTML = '<span class="text-green-600 font-semibold">✅ To\'g\'ri!</span>';
+                resultDiv.classList.remove('hidden');
+                input.classList.remove('border-red-500');
+                input.classList.add('border-green-500');
+            } else {
+                resultDiv.innerHTML = `
+            <span class="text-red-600 font-semibold">❌ Noto'g'ri!</span><br>
+            <span class="text-gray-600">Namuna: <strong>${correctAnswer}</strong></span>
+        `;
+                resultDiv.classList.remove('hidden');
+                input.classList.remove('border-green-500');
+                input.classList.add('border-red-500');
+            }
+        }
+
+        // Handle exercise click
+        function handleExerciseClick(e) {
+            const button = e.target;
+            const exerciseDiv = button.closest('[data-exercise]');
+            const options = exerciseDiv.querySelectorAll('.exercise-option');
+            const selectedOption = parseInt(button.dataset.option);
+            const correctOption = parseInt(button.dataset.correct);
+            const resultMessage = exerciseDiv.querySelector('.result-message');
+
+            // Disable all options
+            options.forEach(opt => opt.disabled = true);
+
+            // Show correct/incorrect
+            if (selectedOption === correctOption) {
+                button.classList.add('correct');
+                resultMessage.innerHTML = '<i class="fas fa-check text-green-600 mr-2"></i><span class="text-green-600 font-medium">To\'g\'ri!</span>';
+            } else {
+                button.classList.add('incorrect');
+                options[correctOption].classList.add('correct');
+                resultMessage.innerHTML = '<i class="fas fa-times text-red-600 mr-2"></i><span class="text-red-600 font-medium">Noto\'g\'ri. To\'g\'ri javob: ' + String.fromCharCode(65 + correctOption) + '</span>';
+            }
+
+            resultMessage.classList.remove('hidden');
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Update tab buttons
+            tabBtns.forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+                    btn.classList.remove('text-gray-500', 'hover:text-gray-700');
+                } else {
+                    btn.classList.remove('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+                    btn.classList.add('text-gray-500', 'hover:text-gray-700');
+                }
+            });
+
+            // Show/hide tab contents
+            videoTab.classList.add('hidden');
+            vocabularyTab.classList.add('hidden');
+            exercisesTab.classList.add('hidden');
+
+            if (tabName === 'video') {
+                videoTab.classList.remove('hidden');
+            } else if (tabName === 'vocabulary') {
+                vocabularyTab.classList.remove('hidden');
+            } else if (tabName === 'exercises') {
+                exercisesTab.classList.remove('hidden');
+            }
+        }
+
+        // Event listeners
+        closeModal.addEventListener('click', closeModalFunc);
+        lessonModal.addEventListener('click', (e) => {
+            if (e.target === lessonModal) {
+                closeModalFunc();
+            }
+        });
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                showTab(btn.dataset.tab);
+            });
+        });
+
+        // Keyboard events
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModalFunc();
+            }
+        });
+
+        // Initialize the app
+        initializeLessons();
+    </script>
+    <script>window.parent.postMessage({ action: "ready" }, "*");
+
+        window.console = new Proxy(console, {
+            get(target, prop) {
+                if (['log', 'warn', 'error'].includes(prop)) {
+                    return new Proxy(target[prop], {
+                        apply(fn, thisArg, args) {
+                            fn.apply(thisArg, args);
+                            window.parent.postMessage({
+                                action: 'console',
+                                type: prop,
+                                args: args.map((arg) => {
+                                    try {
+                                        return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+                                    } catch (e) {
+                                        return arg;
+                                    }
+                                })
+                            }, '*');
+                        }
+                    });
+                }
+                return target[prop];
+            }
+        });
+    </script>
+</body>
+
+</html>
